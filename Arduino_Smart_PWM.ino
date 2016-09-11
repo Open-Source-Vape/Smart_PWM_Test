@@ -200,10 +200,12 @@ void pulsecheck(){
   IFinal = IRaw/7.4;
   RFinal = VFinal/IFinal;
   WFinal = VFinal * IFinal;
+  /* don't use this yet
   eeprom_write_block((const void*)&wattage, (void*)0, sizeof(WFinal));
   eeprom_write_block((const void*)&volt, (void*)0, sizeof(VFinal));
   eeprom_write_block((const void*)&current, (void*)0, sizeof(IFinal));
   eeprom_write_block((const void*)&resistance, (void*)0, sizeof(RFinal));
+  */
   if (RFinal > 1){
   pulse = 1;
   }
