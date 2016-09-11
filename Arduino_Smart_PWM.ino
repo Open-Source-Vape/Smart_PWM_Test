@@ -57,6 +57,7 @@ float RFinal;
 float WFinal;
 
 boolean pulse = 0;
+var pulsecounter;
 
 
 struct resistance_t
@@ -208,8 +209,10 @@ void pulsecheck(){
   */
   if (RFinal > .01){
   pulse = 1;
+  analogWrite(mosfetpin,0);
   }
   if (RFinal <= 0) {
     pulse = 0;
+    analogWrite(mosfetpin,0);
   }
   }
