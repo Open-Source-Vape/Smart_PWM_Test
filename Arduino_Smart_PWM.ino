@@ -92,7 +92,7 @@ void loop () {
    readenable=0;
     if(mode==2){
       
-    bathighvoltage();}
+    batmedvoltage();}
     
    if(mode==1){
     
@@ -147,7 +147,7 @@ void loop () {
 
 
 
-void bathighvoltage(){
+void batmedvoltage(){
   analogWrite(mosfetpin, outputpwm);
   
 }
