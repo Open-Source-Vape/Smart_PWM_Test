@@ -206,7 +206,7 @@ void pulsecheck(){
   eeprom_write_block((const void*)&current, (void*)0, sizeof(IFinal));
   eeprom_write_block((const void*)&resistance, (void*)0, sizeof(RFinal));
   */
-  if (RFinal > 1){
+  if (RFinal > .01){
   pulse = 1;
   }
   if (RFinal <= 0) {
