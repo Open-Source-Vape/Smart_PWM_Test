@@ -54,6 +54,7 @@ float vin=0;
 float VFinal;
 float IFinal;
 float RFinal;
+float WFinal;
 
 struct resistance_t
 {
@@ -113,6 +114,7 @@ void loop () {
     VFinal = Vraw/12.99; 
     IFinal = IRaw/7.4;
     RFinal = VFinal/IFinal;
+    WFinal = VFinal * IFinal;
     //match it against last known resistance
     //if different ask if new atomizer
     //if same or within 10% cold ohm reading continue without prompt
@@ -138,6 +140,8 @@ void loop () {
   display.print(VFinal);
   display.setCursor(2,10);
   display.print(RFinal);
+  display.setCursor(0,15);
+  display.print(WFinal);
   
 }
 
