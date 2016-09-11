@@ -9,6 +9,8 @@
  * Add boolean that monitors battery charge while screen is active
  * once checking battery charge against user setting/auto setting evaluate if battery charge is sufficient to continue
  * POSSIBLY: monitor under load and show average % of sag on source voltage
+ * Add two loops running for wattage Loop 1 will check live battery source vs percent of pot open using this it will then calculate a projected wattage off last known resistance stored in eeprom
+ * second loop will run only while firing and will show live wattage calc next to projected or overlaying projected wattage calculations
  */
 #include <Wire.h>
 #include <SPI.h>
