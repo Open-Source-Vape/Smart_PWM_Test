@@ -41,11 +41,11 @@ float vin=0;
 float VFinal;
 float IFinal;
 
-struct settings_t
+struct resistance_t
 {
   long alarm;
   int mode;
-} settings;
+} resistance;
 
 void setup() {
   Serial.begin(9600);
@@ -53,7 +53,7 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
    display.display();
    display.clearDisplay();
-   eeprom_read_block((void*)&settings, (void*)0, sizeof(settings));
+   eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
 }
 
 void loop () {
