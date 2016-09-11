@@ -51,6 +51,7 @@ float vout=0;
 float vin=0;
 float VFinal;
 float IFinal;
+float RFinal;
 
 struct resistance_t
 {
@@ -109,7 +110,7 @@ void loop () {
     analogRead(IRaw);
     VFinal = Vraw/12.99; 
     IFinal = IRaw/7.4;
-    //insert calculation of resistance of current build
+    RFinal = VFinal/IFinal;
     //match it against last known resistance
     //if different ask if new atomizer
     //if same or within 10% cold ohm reading continue without prompt
