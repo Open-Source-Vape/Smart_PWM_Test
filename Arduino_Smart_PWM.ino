@@ -1,5 +1,6 @@
 //pieced together and coded by the Zanderist(AWA)
 // display and smart pot added by zarboz
+//Display is Adafruit SSD1306 128x32 i2c display 
 
 #include <Wire.h>
 #include <SPI.h>
