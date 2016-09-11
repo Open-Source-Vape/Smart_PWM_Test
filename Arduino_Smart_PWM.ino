@@ -1,7 +1,8 @@
 //pieced together and coded by the Zanderist(AWA)
 // display and smart pot added by zarboz
 //Display is Adafruit SSD1306 128x32 i2c display 
-// voltage/amp detector is a TI-INA-169. 
+// voltage/amp detector is a TI-INA-169. http://cdn.sparkfun.com/datasheets/Sensors/Current/DC%20Voltage%20and%20Current%20Sense%20PCB%20with%20Analog%20Output.pdf
+// used 50v/90a model
 /*Todo: 
  * add boolean state to  tell program wether screen is "active or not"
  * add intelligent or user defined battery states IE 1s/2s/3s/4s etc etc
