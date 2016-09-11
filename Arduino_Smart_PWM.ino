@@ -1,7 +1,14 @@
 //pieced together and coded by the Zanderist(AWA)
 // display and smart pot added by zarboz
 //Display is Adafruit SSD1306 128x32 i2c display 
-
+// voltage/amp detector is a TI-INA-169. 
+/*Todo: 
+ * add boolean state to  tell program wether screen is "active or not"
+ * add intelligent or user defined battery states IE 1s/2s/3s/4s etc etc
+ * Add boolean that monitors battery charge while screen is active
+ * once checking battery charge against user setting/auto setting evaluate if battery charge is sufficient to continue
+ * POSSIBLY: monitor under load and show average % of sag on source voltage
+ */
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_SSD1306.h>
