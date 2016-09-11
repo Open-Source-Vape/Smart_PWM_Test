@@ -97,8 +97,14 @@ void loop () {
     analogRead(IRaw);
     VFinal = Vraw/12.99; 
     IFinal = IRaw/7.4;
-    //insert read of EEPROM for last known resistance
     //insert calculation of resistance of current build
+    //match it against last known resistance
+    //if different ask if new atomizer
+    //if same or within 10% cold ohm reading continue without prompt
+    // either way write new resistance to eeprom
+    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
+    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
+    
     //insert prompt for new coil TODO LATER
     
   }
