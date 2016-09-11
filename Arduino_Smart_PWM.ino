@@ -133,7 +133,9 @@ void loop () {
   display.setCursor(1,5);
   display.print(vin);
   display.setCursor(0,10);
-  display.println(VFinal);
+  display.print(VFinal);
+  display.setCursor(2,10);
+  display.print(RFinal);
   
 }
 
