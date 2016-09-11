@@ -16,6 +16,8 @@ Adafruit_SSD1306 display(OLED_RESET);
 int potpin = A3;
 int battpin = A2;
 int firepin = 7;
+int Vraw = A0;
+int IRaw = A1;
 
 int switchstate = 0;
 int mode = 0;
@@ -34,6 +36,8 @@ int voutputvoltage = 0;
 float Rratio=0.4;
 float vout=0;
 float vin=0;
+float VFinal;
+float IFinal;
 
 
 void setup() {
@@ -80,19 +84,27 @@ void loop () {
   
   if(switchstate==0){
     readenable=1;
-    samplepwm=1; 
+    samplepwm=1;
+    analogRead(Vraw);
+    analogRead(IRaw);
+    VFinal = Vraw/12.99; 
+    IFinal = IRaw/7.4;
+    
   }
 
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0,0);
-  display.println(readenable);
+  display.print(readenable);
   display.setCursor(1,0);
-  display.println(potvalue);
+  display.print(potvalue);
   display.setCursor(0,5);
-  display.println(outputvalue);
+  display.print(outputvalue);
   display.setCursor(1,5);
-  display.println(vin);
+  display.print(vin);
+  display.setCursor(0,10);
+  display.println(VFinal);
+  
 }
 
 
