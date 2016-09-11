@@ -20,6 +20,8 @@ int battpin = A2;
 int firepin = 7;
 int Vraw = A0;
 int IRaw = A1;
+int mosfetpin = 3;
+
 
 int switchstate = 0;
 int mode = 0;
@@ -33,6 +35,7 @@ int samplepwm = 0;
 int outputpwm = 0;
 int voltagevalue = 0;
 int voutputvoltage = 0;
+int done = 0;
 
 
 float Rratio=0.4;
@@ -93,6 +96,7 @@ void loop () {
   if(switchstate==0){
     readenable=1;
     samplepwm=1;
+    analogWrite(mosfetpin, 0);
     analogRead(Vraw);
     analogRead(IRaw);
     VFinal = Vraw/12.99; 
@@ -106,7 +110,7 @@ void loop () {
     //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
     
     //insert prompt for new coil TODO LATER
-    
+    done = 0;
   }
 
   display.setTextSize(1);
@@ -127,9 +131,18 @@ void loop () {
 
 
 void bathighvoltage(){
+  analogWrite(mosfetpin, outputpwm);
+  
 }
 /////////////////////////////Todo add a screen reaction for overvoltage\
 void batmediumvoltage(){
+  if(samplepwm==1){heatpwm=outputvalue;samplepwm=0;}
+  if(done==0){
+            if(heatpwm>0){
+             heatpwm=heatpwm+heatpwminc;
+                        }
+    if(heatpwm<=0){analogWrite(mosfetpin,0);}
+                }
 }
 
 /////////////////////////////Todo add screen reaction for medium voltage\
