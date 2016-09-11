@@ -6,6 +6,8 @@
 #include <SPI.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include <EEPROM.h>
+
 
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
