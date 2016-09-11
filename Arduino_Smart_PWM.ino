@@ -96,7 +96,7 @@ void loop () {
     
    if(mode==1){
     
-    batmediumvoltage();}
+    powersaver();}
   
   
    if(mode==0) {
@@ -152,7 +152,7 @@ void batmedvoltage(){
   
 }
 /////////////////////////////Todo add a screen reaction for overvoltage\
-void batmediumvoltage(){
+void powersaver(){
   if(samplepwm==1){heatpwm=outputvalue;samplepwm=0;}
   if(done==0){
             if(heatpwm>0){
