@@ -41,6 +41,11 @@ float vin=0;
 float VFinal;
 float IFinal;
 
+struct settings_t
+{
+  long alarm;
+  int mode;
+} settings;
 
 void setup() {
   Serial.begin(9600);
@@ -48,6 +53,7 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
    display.display();
    display.clearDisplay();
+   eeprom_read_block((void*)&settings, (void*)0, sizeof(settings));
 }
 
 void loop () {
@@ -91,6 +97,9 @@ void loop () {
     analogRead(IRaw);
     VFinal = Vraw/12.99; 
     IFinal = IRaw/7.4;
+    //insert read of EEPROM for last known resistance
+    //insert calculation of resistance of current build
+    //insert prompt for new coil TODO LATER
     
   }
 
