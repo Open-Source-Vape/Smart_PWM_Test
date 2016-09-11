@@ -57,8 +57,6 @@ float RFinal;
 float WFinal;
 
 boolean pulse = 0;
-var pulsecounter;
-
 
 struct resistance_t
 {
@@ -207,6 +205,8 @@ void pulsecheck(){
   eeprom_write_block((const void*)&current, (void*)0, sizeof(IFinal));
   eeprom_write_block((const void*)&resistance, (void*)0, sizeof(RFinal));
   */
+  delayMicroseconds(2);
+  
   if (RFinal > .01){
   pulse = 1;
   analogWrite(mosfetpin,0);
