@@ -56,11 +56,32 @@ float IFinal;
 float RFinal;
 float WFinal;
 
+boolean pulse = 0;
+
+
 struct resistance_t
 {
   long alarm;
   int mode;
 } resistance;
+
+struct wattage_t
+{
+  long alarm;
+  int mode;
+}wattage;
+
+struct current_t
+{
+  long alarm;
+  int mode;
+}current;
+
+struct volt_t
+{
+  long alarm;
+  int mode;
+}volt;
 
 void setup() {
   Serial.begin(9600);
@@ -82,6 +103,7 @@ void loop () {
   switchstate = digitalRead(firepin);
   if(readenable==1){
   outputpwm=outputvalue;
+  //add code to determine if battery is 1s/2s/3s/4s etc
   if(vin>7.51){mode=2;}
   if(6.99<=vin&&vin<=7.50){mode=1;}
   if(vin<6.98){mode=0;}
@@ -135,25 +157,18 @@ void loop () {
 
 
 void batmedvoltage(){
+  pulsecheck();
+  if(pulse==1){
   analogWrite(mosfetpin, outputpwm);
-  analogRead(Vraw);
-    analogRead(IRaw);
-    VFinal = Vraw/12.99; 
-    IFinal = IRaw/7.4;
-    RFinal = VFinal/IFinal;
-    WFinal = VFinal * IFinal;
-    //match it against last known resistance
-    //if different ask if new atomizer
-    //if same or within 10% cold ohm reading continue without prompt
-    // either way write new resistance to eeprom
-    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
-    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
-    
-    //insert prompt for new coil TODO LATER
+  }
+  else if(pulse==0)
+  {}
   
 }
 /////////////////////////////Todo add a screen reaction for overvoltage\
 void powersaver(){
+  pulsecheck();
+  if(pulse==1){
   if(samplepwm==1){heatpwm=outputvalue;samplepwm=0;}
   if(done==0){
             if(heatpwm>0){
@@ -162,25 +177,37 @@ void powersaver(){
     if(heatpwm<=0){
       
       analogWrite(mosfetpin,0);
-      analogRead(Vraw);
-    analogRead(IRaw);
-    VFinal = Vraw/12.99; 
-    IFinal = IRaw/7.4;
-    RFinal = VFinal/IFinal;
-    WFinal = VFinal * IFinal;
-    //match it against last known resistance
-    //if different ask if new atomizer
-    //if same or within 10% cold ohm reading continue without prompt
-    // either way write new resistance to eeprom
-    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
-    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
-    
-    //insert prompt for new coil TODO LATER
+ 
               }
           }
+  }
+  else if(pulse==0){
+    
+  }
 }
 
 /////////////////////////////Todo add screen reaction for medium voltage\
 void batlowvoltage(){
 }
 ///////////////////////////// Todo add screeen reaction for low battery and throttle output after a cutoff level
+
+void pulsecheck(){
+  //This will happen prefire and create a short 1-2 microsecond burst that will gauge the resistance and other details of build
+  analogWrite(mosfetpin,1);
+  analogRead(Vraw);
+  analogRead(IRaw);
+  VFinal = Vraw/12.99; 
+  IFinal = IRaw/7.4;
+  RFinal = VFinal/IFinal;
+  WFinal = VFinal * IFinal;
+  eeprom_write_block((const void*)&wattage, (void*)0, sizeof(WFinal));
+  eeprom_write_block((const void*)&volt, (void*)0, sizeof(VFinal));
+  eeprom_write_block((const void*)&current, (void*)0, sizeof(IFinal));
+  eeprom_write_block((const void*)&resistance, (void*)0, sizeof(RFinal));
+  if (RFinal > 1){
+  pulse = 1;
+  }
+  if (RFinal <= 0) {
+    pulse = 0;
+  }
+  }
