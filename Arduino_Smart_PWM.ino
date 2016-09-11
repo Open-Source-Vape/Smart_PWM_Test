@@ -109,20 +109,7 @@ void loop () {
     readenable=1;
     samplepwm=1;
     analogWrite(mosfetpin, 0);
-    analogRead(Vraw);
-    analogRead(IRaw);
-    VFinal = Vraw/12.99; 
-    IFinal = IRaw/7.4;
-    RFinal = VFinal/IFinal;
-    WFinal = VFinal * IFinal;
-    //match it against last known resistance
-    //if different ask if new atomizer
-    //if same or within 10% cold ohm reading continue without prompt
-    // either way write new resistance to eeprom
-    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
-    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
     
-    //insert prompt for new coil TODO LATER
     done = 0;
   }
 
@@ -149,6 +136,20 @@ void loop () {
 
 void batmedvoltage(){
   analogWrite(mosfetpin, outputpwm);
+  analogRead(Vraw);
+    analogRead(IRaw);
+    VFinal = Vraw/12.99; 
+    IFinal = IRaw/7.4;
+    RFinal = VFinal/IFinal;
+    WFinal = VFinal * IFinal;
+    //match it against last known resistance
+    //if different ask if new atomizer
+    //if same or within 10% cold ohm reading continue without prompt
+    // either way write new resistance to eeprom
+    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
+    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
+    
+    //insert prompt for new coil TODO LATER
   
 }
 /////////////////////////////Todo add a screen reaction for overvoltage\
@@ -158,8 +159,25 @@ void powersaver(){
             if(heatpwm>0){
              heatpwm=heatpwm+heatpwminc;
                         }
-    if(heatpwm<=0){analogWrite(mosfetpin,0);}
-                }
+    if(heatpwm<=0){
+      
+      analogWrite(mosfetpin,0);
+      analogRead(Vraw);
+    analogRead(IRaw);
+    VFinal = Vraw/12.99; 
+    IFinal = IRaw/7.4;
+    RFinal = VFinal/IFinal;
+    WFinal = VFinal * IFinal;
+    //match it against last known resistance
+    //if different ask if new atomizer
+    //if same or within 10% cold ohm reading continue without prompt
+    // either way write new resistance to eeprom
+    //eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
+    //eeprom_write_block((const void*)&resistance, (void*)0, sizeof(resistance));
+    
+    //insert prompt for new coil TODO LATER
+              }
+          }
 }
 
 /////////////////////////////Todo add screen reaction for medium voltage\
