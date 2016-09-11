@@ -98,11 +98,11 @@ void loop () {
 
 void bathighvoltage(){
 }
-/////////////////////////////\
+/////////////////////////////Todo add a screen reaction for overvoltage\
 void batmediumvoltage(){
 }
 
-/////////////////////////////\
+/////////////////////////////Todo add screen reaction for medium voltage\
 void batlowvoltage(){
 }
-/////////////////////////////
+///////////////////////////// Todo add screeen reaction for low battery and throttle output after a cutoff level
