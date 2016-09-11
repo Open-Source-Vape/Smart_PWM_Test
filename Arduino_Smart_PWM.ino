@@ -34,7 +34,7 @@ int mosfetpin = 3;
 
 
 int switchstate = 0;
-int mode = 0;
+int mode = 2;
 int levelshutdown = 0;
 int readenable = 1;
 int potvalue = 0;
@@ -103,9 +103,9 @@ void loop () {
   if(readenable==1){
   outputpwm=outputvalue;
   //add code to determine if battery is 1s/2s/3s/4s etc
-  if(vin>7.51){mode=2;}
+  /*if(vin>7.51){mode=2;}
   if(6.99<=vin&&vin<=7.50){mode=1;}
-  if(vin<6.98){mode=0;}
+  if(vin<6.98){mode=0;}*/
   }
   
   
