@@ -16,6 +16,7 @@
 #include <SPI.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include <gfxfont.h>
 #include <avr/eeprom.h>
 
 
@@ -83,9 +84,9 @@ struct volt_t
 }volt;
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(firepin, INPUT);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    Serial.begin(9600);
+    pinMode(firepin, INPUT);
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
    display.display();
    display.clearDisplay();
    eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
@@ -96,7 +97,7 @@ void loop () {
   potvalue = analogRead(potpin);
   outputvalue = map(potvalue, 0, 1023, 0, 255);
   voltagevalue = analogRead(battpin);
-  vout = (voltagevalue*4.68)/1024.0;
+  vout = (voltagevalue*1.56)/1024.0;
   vin = vout/Rratio;
 
   switchstate = digitalRead(firepin);
@@ -133,23 +134,34 @@ void loop () {
     
     done = 0;
   }
-
+  display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0,0);
   display.print(readenable);
-  display.setCursor(1,0);
+  display.setCursor(5,0);
+  display.print("sw");
+  display.setCursor(30,0);
   display.print(potvalue);
-  display.setCursor(0,5);
-  display.print(outputvalue);
-  display.setCursor(1,5);
+  display.setCursor(60,0);
+  display.print("pot");
+  display.println(outputvalue);
+  display.print("vout");
+  display.setCursor(30,10);
   display.print(vin);
-  display.setCursor(0,10);
-  display.print(VFinal);
-  display.setCursor(2,10);
+  display.setCursor(60,10);
+  display.print("VFin");
+  //display.setCursor(65,10);
+  display.println(VFinal);
   display.print(RFinal);
-  display.setCursor(0,15);
-  display.print(WFinal);
+  display.setCursor(60,20);
+  display.print("Rfin");
+  //display.setCursor(60,25);
+  display.println(WFinal);
+  display.print("W");
+  display.display();
+
+ 
   
 }
 
@@ -216,3 +228,4 @@ void pulsecheck(){
     analogWrite(mosfetpin,0);
   }
   }
+
