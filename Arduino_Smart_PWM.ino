@@ -97,6 +97,7 @@ void loop () {
   potvalue = analogRead(potpin);
   outputvalue = map(potvalue, 0, 1023, 0, 255);
   voltagevalue = analogRead(battpin);
+  //vout will become a NULL when the VFinal is impimented as it will be a real life output
   vout = (voltagevalue*1.56)/1024.0;
   vin = vout/Rratio;
 
