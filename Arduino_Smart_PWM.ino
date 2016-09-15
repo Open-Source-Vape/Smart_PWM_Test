@@ -29,8 +29,8 @@ Adafruit_SSD1306 display(OLED_RESET);
 int potpin = A3;
 int battpin = A2;
 int firepin = 7;
-int Vraw = A0;
-int IRaw = A1;
+int Vraw = analogRead(A0);
+int IRaw = analogRead(A1);
 int mosfetpin = 3;
 
 
@@ -146,10 +146,10 @@ void loop () {
   display.print(potvalue);
   display.setCursor(60,0);
   display.print("pot");
-  display.println(outputvalue);
+  display.println(IFinal);
   display.print("vout");
   display.setCursor(30,10);
-  display.print(vin);
+  display.println(vin);
   display.setCursor(60,10);
   display.print("VFin");
   //display.setCursor(65,10);
@@ -171,7 +171,7 @@ void loop () {
 void batmedvoltage(){
   pulsecheck();
   if(pulse==1){
-  analogWrite(mosfetpin, outputpwm);
+  digitalWrite(mosfetpin, outputpwm);
   }
   else if(pulse==0)
   {}
@@ -188,7 +188,7 @@ void powersaver(){
                         }
     if(heatpwm<=0){
       
-      analogWrite(mosfetpin,0);
+      digitalWrite(mosfetpin,0);
  
               }
           }
@@ -205,7 +205,7 @@ void batlowvoltage(){
 
 void pulsecheck(){
   //This will happen prefire and create a short 1-2 microsecond burst that will gauge the resistance and other details of build
-  analogWrite(mosfetpin,1);
+  analogWrite(mosfetpin,255);
   analogRead(Vraw);
   analogRead(IRaw);
   VFinal = Vraw/12.99; 
