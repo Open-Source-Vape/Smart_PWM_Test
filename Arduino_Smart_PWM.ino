@@ -29,11 +29,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 int potpin = A3;
 int battpin = A2;
 int firepin = 7;
-int Vraw = analogRead(A0);
-int IRaw = analogRead(A1);
 int mosfetpin = 3;
 
-
+int VRaw; 
+int IRaw;
 int switchstate = 0;
 int mode = 2;
 int levelshutdown = 0;
@@ -160,8 +159,14 @@ void loop () {
   //display.setCursor(60,25);
   display.println(WFinal);
   display.print("W");
+
   display.display();
 
+  
+  Serial.print(VFinal);
+  Serial.print("   Volts");
+
+ 
  
   
 }
@@ -205,11 +210,12 @@ void batlowvoltage(){
 
 void pulsecheck(){
   //This will happen prefire and create a short 1-2 microsecond burst that will gauge the resistance and other details of build
-  analogWrite(mosfetpin,255);
-  analogRead(Vraw);
-  analogRead(IRaw);
-  VFinal = Vraw/12.99; 
-  IFinal = IRaw/7.4;
+  pinMode(mosfetpin, OUTPUT);
+  digitalWrite(mosfetpin,HIGH);
+  VRaw = analogRead(A0);
+  IRaw = analogRead(A1);
+  VFinal = VRaw/49.44; 
+  IFinal = IRaw/14.9;
   RFinal = VFinal/IFinal;
   WFinal = VFinal * IFinal;
   /* don't use this yet
@@ -222,11 +228,27 @@ void pulsecheck(){
   
   if (RFinal > .01){
   pulse = 1;
-  analogWrite(mosfetpin,0);
+  digitalWrite(mosfetpin,LOW);
   }
-  if (RFinal <= 0) {
+  else if (RFinal <= 0) {
     pulse = 0;
-    analogWrite(mosfetpin,0);
+    noresistance();
+    digitalWrite(mosfetpin,LOW);
+  }
+  else if (RFinal == NAN) {
+    pulse = 0;
+    noresistance();
+    digitalWrite(mosfetpin, LOW);
   }
   }
+
+void noresistance() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.print("No Resistance");
+  display.display();
+  delay(200);
+}
 
