@@ -49,6 +49,7 @@ int voltagevalue = 0;
 int voutputvoltage = 0;
 int done = 0;
 int32_t frequency = 20000;
+int dutycycle = 0;
 
 float Rratio = 0.4;
 float vout = 0;
@@ -88,7 +89,7 @@ void loop () {
   //vout will become a NULL when the VFinal is impimented as it will be a real life output
   vout = (voltagevalue * 1.56) / 1024.0;
   vin = vout / Rratio;
-
+  dutycycle = map(potvalue, 0, 1023, 0, 100);
   switchstate = digitalRead(firepin);
 
   if (readenable == 1) {
@@ -123,7 +124,7 @@ void loop () {
   display.setCursor(70, 9);
   display.print(RFinal, 2);
   display.setCursor(70, 18);
-  display.print(pulse);
+  display.print(dutycycle);
   display.display();
 
   Serial.print(VFinal);
@@ -136,6 +137,7 @@ void loop () {
 void getswitchstate() {
   if (switchstate == HIGH) {
     readenable = 0;
+    readraws();
     if (mode == 2) {
 
       batmedvoltage();
@@ -158,7 +160,7 @@ void getswitchstate() {
     readenable = 1;
     samplepwm = 1;
     pwmWrite(mosfetpin, 0);
-    //VFinal = 0;
+    VFinal = 0;
     IFinal = 0;
     WFinal = 0;
     pulse = 0;
@@ -168,8 +170,8 @@ void getswitchstate() {
 
 }
 void batmedvoltage() {
-  if (pulseran == 0){
-  pulsecheck();
+  if (pulseran == 0) {
+    pulsecheck();
   }
   if (pulse == 1) {
     pwmWrite(mosfetpin, outputpwm);
@@ -178,6 +180,10 @@ void batmedvoltage() {
   else if (pulse == 0)
   {
     pwmWrite(mosfetpin, 0);
+    VFinal = 0;
+    IFinal = 0;
+    WFinal = 0;
+    RFinal = 0;
   }
 
 }
@@ -185,8 +191,8 @@ void batmedvoltage() {
 
 
 void powersaver() {
-  if (pulseran == 0){
-  pulsecheck();
+  if (pulseran == 0) {
+    pulsecheck();
   }
   if (pulse == 1) {
     if (samplepwm == 1) {
@@ -211,25 +217,31 @@ void powersaver() {
 
 /////////////////////////////Todo add screen reaction for medium voltage\
 void batlowvoltage() {
+
 }
+
+
 ///////////////////////////// Todo add screeen reaction for low battery and throttle output after a cutoff level
 
-void pulsecheck() {
-  pwmWrite(mosfetpin, 255);
+
+void readraws() {
   VRaw = analogRead(A0);
   IRaw = analogRead(A1);
-
   //these are for 1s 3.3v supplied boards use normal values for 5v or 2s/3s/4s configuration
-
   //VFinal = VRaw / 57.75606;
   //IFinal = IRaw / 22.22006;
   //please uncomment these values and comment the ones above if you use a 2s->greater input
   VFinal = VRaw / 12.99;
   IFinal = IRaw / 7.4;
-  delay(2);
   RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
-  
+}
+
+
+void pulsecheck() {
+  pwmWrite(mosfetpin, 255);
+  readraws();
+  delay(2);
   if (RFinal > .01) {
     pulse = 1;
     pwmWrite(mosfetpin, 0);
@@ -239,23 +251,28 @@ void pulsecheck() {
     noresistance();
     pwmWrite(mosfetpin, 0);
     pulseran = 0;
+    VFinal = 0;
+    IFinal = 0;
+    WFinal = 0;
   }
   else if (RFinal == NAN) {
     pulse = 0;
     noresistance();
     pwmWrite(mosfetpin, 0);
     pulseran = 0;
+    
   }
-
   pulseran = 1;
 }
 
 void noresistance() {
   display.clearDisplay();
-  display.setTextSize(2);
+  display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.print("No Coil");
+  display.setCursor(0, 10);
+  display.print(pulse);
   display.display();
   delay(200);
 }
