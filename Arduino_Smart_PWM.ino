@@ -185,7 +185,9 @@ void batmedvoltage() {
 
 
 void powersaver() {
+  if (pulseran == 0){
   pulsecheck();
+  }
   if (pulse == 1) {
     if (samplepwm == 1) {
       heatpwm = outputvalue;
