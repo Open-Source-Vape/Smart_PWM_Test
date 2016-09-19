@@ -100,6 +100,7 @@ void loop () {
     if(vin<6.98){mode=0;}*/
   }
 
+  //todo add counter for a way to lock / unlock output 
   getswitchstate();
 
   display.clearDisplay();
