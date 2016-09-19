@@ -222,7 +222,7 @@ void pulsecheck() {
    */
   RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
-  delay(30);
+  delay(10);
   if (RFinal > .01) {
     pulse = 1;
     pwmWrite(mosfetpin, 0);
