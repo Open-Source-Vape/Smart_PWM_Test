@@ -48,7 +48,7 @@ int outputpwm = 0;
 int voltagevalue = 0;
 int voutputvoltage = 0;
 int done = 0;
-int32_t frequency = 100000;
+int32_t frequency = 590;
 
 float Rratio = 0.4;
 float vout = 0;
