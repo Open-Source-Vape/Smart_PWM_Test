@@ -58,6 +58,7 @@ float VFinal;
 float IFinal;
 float RFinal;
 float WFinal;
+byte WUser = 0;
 
 boolean pulse = 0;
 boolean pulseran = 0;
@@ -277,4 +278,24 @@ void noresistance() {
   display.display();
   delay(200);
 }
+
+void updowncheck() {
+  if (digitalRead(switchstateup) == LOW)
+  {
+    WUser++;
+    delay(25);
+  }
+  if (digitalRead(switchstatedown) == LOW)
+  {
+    WUser--;
+    delay(25);
+  }
+  if(WUser >= 150) WUser = 150;
+  {//display max wattage eror
+    
+  }
+  if (WUser <= 0) WUser = 0;
+  {
+    // DIsplay min wattage error
+  }
 
