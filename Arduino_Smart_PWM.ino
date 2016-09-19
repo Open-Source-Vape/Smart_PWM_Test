@@ -48,7 +48,7 @@ int outputpwm = 0;
 int voltagevalue = 0;
 int voutputvoltage = 0;
 int done = 0;
-int32_t frequency = 590;
+int32_t frequency = 20000;
 
 float Rratio = 0.4;
 float vout = 0;
@@ -206,7 +206,7 @@ void batlowvoltage() {
 ///////////////////////////// Todo add screeen reaction for low battery and throttle output after a cutoff level
 
 void pulsecheck() {
-  //pwmWrite(mosfetpin, 255);
+  pwmWrite(mosfetpin, 255);
   VRaw = analogRead(A0);
   IRaw = analogRead(A1);
 
@@ -214,9 +214,15 @@ void pulsecheck() {
 
   VFinal = VRaw / 57.75606;
   IFinal = IRaw / 22.22006;
+  /*please uncomment these values and comment the ones above if you use a 2s->greater input
+   * 
+   * VFinal = VRaw/12.99;
+   * IFinal = IRaw/7.4;
+   * 
+   */
   RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
-
+  delay(30);
   if (RFinal > .01) {
     pulse = 1;
     pwmWrite(mosfetpin, 0);
@@ -231,8 +237,8 @@ void pulsecheck() {
     noresistance();
     pwmWrite(mosfetpin, 0);
   }
-   //pwmWrite(mosfetpin, 0);
-   //delayMicroseconds(20);
+   
+   
 }
 
 void noresistance() {
