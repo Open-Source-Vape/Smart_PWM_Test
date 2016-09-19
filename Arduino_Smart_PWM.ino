@@ -59,6 +59,7 @@ float RFinal;
 float WFinal;
 
 boolean pulse = 0;
+boolean pulseran = 0;
 
 void setup() {
   InitTimersSafe();
@@ -66,13 +67,16 @@ void setup() {
   Serial.begin(9600);
   pinMode(firepin, INPUT);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.println("C9 Vape");
   display.display();
   display.clearDisplay();
-  
+
+
+
 }
 
 void loop () {
@@ -96,7 +100,7 @@ void loop () {
   }
 
   getswitchstate();
- 
+
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -130,7 +134,7 @@ void loop () {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getswitchstate() {
-   if (switchstate == HIGH) {
+  if (switchstate == HIGH) {
     readenable = 0;
     if (mode == 2) {
 
@@ -159,11 +163,14 @@ void getswitchstate() {
     WFinal = 0;
     pulse = 0;
     done = 0;
+    pulseran = 0;
   }
-  
+
 }
 void batmedvoltage() {
+  if (pulseran == 0){
   pulsecheck();
+  }
   if (pulse == 1) {
     pwmWrite(mosfetpin, outputpwm);
 
@@ -212,17 +219,15 @@ void pulsecheck() {
 
   //these are for 1s 3.3v supplied boards use normal values for 5v or 2s/3s/4s configuration
 
-  VFinal = VRaw / 57.75606;
-  IFinal = IRaw / 22.22006;
-  /*please uncomment these values and comment the ones above if you use a 2s->greater input
-   * 
-   * VFinal = VRaw/12.99;
-   * IFinal = IRaw/7.4;
-   * 
-   */
+  //VFinal = VRaw / 57.75606;
+  //IFinal = IRaw / 22.22006;
+  //please uncomment these values and comment the ones above if you use a 2s->greater input
+  VFinal = VRaw / 12.99;
+  IFinal = IRaw / 7.4;
+  delay(2);
   RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
-  delay(10);
+  
   if (RFinal > .01) {
     pulse = 1;
     pwmWrite(mosfetpin, 0);
@@ -231,14 +236,16 @@ void pulsecheck() {
     pulse = 0;
     noresistance();
     pwmWrite(mosfetpin, 0);
+    pulseran = 0;
   }
   else if (RFinal == NAN) {
     pulse = 0;
     noresistance();
     pwmWrite(mosfetpin, 0);
+    pulseran = 0;
   }
-   
-   
+
+  pulseran = 1;
 }
 
 void noresistance() {
