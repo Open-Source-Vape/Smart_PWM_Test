@@ -1,9 +1,9 @@
 //pieced together and coded by the Zanderist(AWA)
 // display and smart pot added by zarboz
-//Display is Adafruit SSD1306 128x32 i2c display 
+//Display is Adafruit SSD1306 128x32 i2c display
 // voltage/amp detector is a TI-INA-169. http://cdn.sparkfun.com/datasheets/Sensors/Current/DC%20Voltage%20and%20Current%20Sense%20PCB%20with%20Analog%20Output.pdf
 // used 50v/90a model
-/*Todo: 
+/*Todo:
  * add boolean state to  tell program wether screen is "active or not"
  * add intelligent or user defined battery states IE 1s/2s/3s/4s etc etc
  * Add boolean that monitors battery charge while screen is active
@@ -12,6 +12,7 @@
  * Add two loops running for wattage Loop 1 will check live battery source vs percent of pot open using this it will then calculate a projected wattage off last known resistance stored in eeprom
  * second loop will run only while firing and will show live wattage calc next to projected or overlaying projected wattage calculations
  */
+#include <PWM.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_SSD1306.h>
@@ -20,18 +21,19 @@
 #include <avr/eeprom.h>
 
 
+
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
 
-#define LOGO16_GLCD_HEIGHT 16 
-#define LOGO16_GLCD_WIDTH  16 
+#define LOGO16_GLCD_HEIGHT 16
+#define LOGO16_GLCD_WIDTH  16
 
 int potpin = A3;
 int battpin = A2;
 int firepin = 7;
 int mosfetpin = 3;
 
-int VRaw; 
+int VRaw;
 int IRaw;
 int switchstate = 0;
 int mode = 2;
@@ -46,11 +48,11 @@ int outputpwm = 0;
 int voltagevalue = 0;
 int voutputvoltage = 0;
 int done = 0;
+int32_t frequency = 100000;
 
-
-float Rratio=0.4;
-float vout=0;
-float vin=0;
+float Rratio = 0.4;
+float vout = 0;
+float vin = 0;
 float VFinal;
 float IFinal;
 float RFinal;
@@ -58,196 +60,187 @@ float WFinal;
 
 boolean pulse = 0;
 
-struct resistance_t
-{
-  long alarm;
-  int mode;
-} resistance;
-
-struct wattage_t
-{
-  long alarm;
-  int mode;
-}wattage;
-
-struct current_t
-{
-  long alarm;
-  int mode;
-}current;
-
-struct volt_t
-{
-  long alarm;
-  int mode;
-}volt;
-
 void setup() {
-    Serial.begin(9600);
-    pinMode(firepin, INPUT);
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-   display.display();
-   display.clearDisplay();
-   eeprom_read_block((void*)&resistance, (void*)0, sizeof(resistance));
+  InitTimersSafe();
+  bool success = SetPinFrequencySafe(mosfetpin, frequency);
+  Serial.begin(9600);
+  pinMode(firepin, INPUT);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("C9 Vape");
+  display.display();
+  display.clearDisplay();
+  
 }
 
 void loop () {
+  //pulsecheck();
 
   potvalue = analogRead(potpin);
   outputvalue = map(potvalue, 0, 1023, 0, 255);
   voltagevalue = analogRead(battpin);
   //vout will become a NULL when the VFinal is impimented as it will be a real life output
-  vout = (voltagevalue*1.56)/1024.0;
-  vin = vout/Rratio;
+  vout = (voltagevalue * 1.56) / 1024.0;
+  vin = vout / Rratio;
 
   switchstate = digitalRead(firepin);
-  if(readenable==1){
-  outputpwm=outputvalue;
-  //add code to determine if battery is 1s/2s/3s/4s etc
-  /*if(vin>7.51){mode=2;}
-  if(6.99<=vin&&vin<=7.50){mode=1;}
-  if(vin<6.98){mode=0;}*/
-  }
-  
-  
-  if(switchstate==1){
-   readenable=0;
-    if(mode==2){
-      
-    batmedvoltage();}
-    
-   if(mode==1){
-    
-    powersaver();}
-  
-  
-   if(mode==0) {
-    
-    batlowvoltage(); }
+
+  if (readenable == 1) {
+    outputpwm = outputvalue;
+    //add code to determine if battery is 1s/2s/3s/4s etc
+    /*if(vin>7.51){mode=2;}
+    if(6.99<=vin&&vin<=7.50){mode=1;}
+    if(vin<6.98){mode=0;}*/
   }
 
-  
-  if(switchstate==0){
-    readenable=1;
-    samplepwm=1;
-    analogWrite(mosfetpin, 0);
-    
-    done = 0;
-  }
+  getswitchstate();
+ 
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.print(readenable);
-  display.setCursor(5,0);
-  display.print("sw");
-  display.setCursor(30,0);
-  display.print(potvalue);
-  display.setCursor(60,0);
-  display.print("pot");
-  display.println(IFinal);
-  display.print("vout");
-  display.setCursor(30,10);
-  display.println(vin);
-  display.setCursor(60,10);
-  display.print("VFin");
-  //display.setCursor(65,10);
-  display.println(VFinal);
-  display.print(RFinal);
-  display.setCursor(60,20);
-  display.print("Rfin");
-  //display.setCursor(60,25);
-  display.println(WFinal);
-  display.print("W");
-
+  display.setCursor(0, 0);
+  display.print("Vout=");
+  display.setCursor(30, 0);
+  display.print(VFinal);
+  display.setCursor(0, 9);
+  display.print("Amp=");
+  display.setCursor(30, 9);
+  display.print(IFinal, 2);
+  display.setCursor(0, 18);
+  display.print("Watt=");
+  display.setCursor(30, 18);
+  display.print(WFinal, 1);
+  display.setCursor(70, 0);
+  display.print("Fire =");
+  display.setCursor(105, 0);
+  display.print(switchstate);
+  display.setCursor(70, 9);
+  display.print(RFinal, 2);
+  display.setCursor(70, 18);
+  display.print(pulse);
   display.display();
 
-  
   Serial.print(VFinal);
   Serial.print("   Volts");
 
- 
- 
-  
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getswitchstate() {
+   if (switchstate == HIGH) {
+    readenable = 0;
+    if (mode == 2) {
+
+      batmedvoltage();
+    }
+
+    if (mode == 1) {
+
+      powersaver();
+    }
 
 
-void batmedvoltage(){
-  pulsecheck();
-  if(pulse==1){
-  digitalWrite(mosfetpin, outputpwm);
+    if (mode == 0) {
+
+      batlowvoltage();
+    }
   }
-  else if(pulse==0)
-  {}
+
+
+  if (switchstate == LOW) {
+    readenable = 1;
+    samplepwm = 1;
+    pwmWrite(mosfetpin, 0);
+    //VFinal = 0;
+    IFinal = 0;
+    WFinal = 0;
+    pulse = 0;
+    done = 0;
+  }
   
+}
+void batmedvoltage() {
+  pulsecheck();
+  if (pulse == 1) {
+    pwmWrite(mosfetpin, outputpwm);
+
+  }
+  else if (pulse == 0)
+  {
+    pwmWrite(mosfetpin, 0);
+  }
+
 }
 /////////////////////////////Todo add a screen reaction for overvoltage\
-void powersaver(){
+
+
+void powersaver() {
   pulsecheck();
-  if(pulse==1){
-  if(samplepwm==1){heatpwm=outputvalue;samplepwm=0;}
-  if(done==0){
-            if(heatpwm>0){
-             heatpwm=heatpwm+heatpwminc;
-                        }
-    if(heatpwm<=0){
-      
-      digitalWrite(mosfetpin,0);
- 
-              }
-          }
+  if (pulse == 1) {
+    if (samplepwm == 1) {
+      heatpwm = outputvalue;
+      samplepwm = 0;
+    }
+    if (done == 0) {
+      if (heatpwm > 0) {
+        heatpwm = heatpwm + heatpwminc;
+      }
+      if (heatpwm <= 0) {
+
+        pwmWrite(mosfetpin, 0);
+
+      }
+    }
   }
-  else if(pulse==0){
-    
+  else if (pulse == 0) {
+
   }
 }
 
 /////////////////////////////Todo add screen reaction for medium voltage\
-void batlowvoltage(){
+void batlowvoltage() {
 }
 ///////////////////////////// Todo add screeen reaction for low battery and throttle output after a cutoff level
 
-void pulsecheck(){
-  //This will happen prefire and create a short 1-2 microsecond burst that will gauge the resistance and other details of build
-  pinMode(mosfetpin, OUTPUT);
-  digitalWrite(mosfetpin,HIGH);
+void pulsecheck() {
+  //pwmWrite(mosfetpin, 255);
   VRaw = analogRead(A0);
   IRaw = analogRead(A1);
-  VFinal = VRaw/49.44; 
-  IFinal = IRaw/14.9;
-  RFinal = VFinal/IFinal;
+
+  //these are for 1s 3.3v supplied boards use normal values for 5v or 2s/3s/4s configuration
+
+  VFinal = VRaw / 57.75606;
+  IFinal = IRaw / 22.22006;
+  RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
-  /* don't use this yet
-  eeprom_write_block((const void*)&wattage, (void*)0, sizeof(WFinal));
-  eeprom_write_block((const void*)&volt, (void*)0, sizeof(VFinal));
-  eeprom_write_block((const void*)&current, (void*)0, sizeof(IFinal));
-  eeprom_write_block((const void*)&resistance, (void*)0, sizeof(RFinal));
-  */
-  delayMicroseconds(2);
-  
-  if (RFinal > .01){
-  pulse = 1;
-  digitalWrite(mosfetpin,LOW);
+
+  if (RFinal > .01) {
+    pulse = 1;
+    pwmWrite(mosfetpin, 0);
   }
   else if (RFinal <= 0) {
     pulse = 0;
     noresistance();
-    digitalWrite(mosfetpin,LOW);
+    pwmWrite(mosfetpin, 0);
   }
   else if (RFinal == NAN) {
     pulse = 0;
     noresistance();
-    digitalWrite(mosfetpin, LOW);
+    pwmWrite(mosfetpin, 0);
   }
-  }
+   //pwmWrite(mosfetpin, 0);
+   //delayMicroseconds(20);
+}
 
 void noresistance() {
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.print("No Resistance");
+  display.setCursor(0, 0);
+  display.print("No Coil");
   display.display();
   delay(200);
 }
