@@ -12,30 +12,42 @@
  * Add two loops running for wattage Loop 1 will check live battery source vs percent of pot open using this it will then calculate a projected wattage off last known resistance stored in eeprom
  * second loop will run only while firing and will show live wattage calc next to projected or overlaying projected wattage calculations
  */
+
+#define screen
+#define Arduino33
+
 #include <PWM.h>
 #include <Wire.h>
 #include <SPI.h>
+#if defined(screen)
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <gfxfont.h>
+#endif
 #include <avr/eeprom.h>
 
 
 
+#if defined(screen)
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
 
 #define LOGO16_GLCD_HEIGHT 16
 #define LOGO16_GLCD_WIDTH  16
+#endif
 
 int potpin = A3;
 int battpin = A2;
 int firepin = 7;
+int uppin = 12;
+int downpin = 11;
 int mosfetpin = 3;
 
 int VRaw;
 int IRaw;
 int switchstate = 0;
+int switchstateup = 0;
+int switchstatedown = 0;
 int mode = 2;
 int levelshutdown = 0;
 int readenable = 1;
@@ -58,32 +70,33 @@ float VFinal;
 float IFinal;
 float RFinal;
 float WFinal;
+float Wproj;
+
 byte WUser = 0;
+float VUser = 0;
+float IUser = 0;
 
 boolean pulse = 0;
 boolean pulseran = 0;
 
 void setup() {
+  pinMode(11, INPUT);
+  pinMode(12, INPUT);
   InitTimersSafe();
   bool success = SetPinFrequencySafe(mosfetpin, frequency);
+  if (success) {
+    pinMode(13, OUTPUT);
+    digitalWrite(13, HIGH);
+  }
   Serial.begin(9600);
   pinMode(firepin, INPUT);
+#if defined(screen)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("C9 Vape");
-  display.display();
-  display.clearDisplay();
-
-
-
+#endif
 }
 
 void loop () {
-  //pulsecheck();
-
   potvalue = analogRead(potpin);
   outputvalue = map(potvalue, 0, 1023, 0, 255);
   voltagevalue = analogRead(battpin);
@@ -92,7 +105,8 @@ void loop () {
   vin = vout / Rratio;
   dutycycle = map(potvalue, 0, 1023, 0, 100);
   switchstate = digitalRead(firepin);
-
+  switchstateup = digitalRead(uppin);
+  switchstatedown = digitalRead(downpin);
   if (readenable == 1) {
     outputpwm = outputvalue;
     //add code to determine if battery is 1s/2s/3s/4s etc
@@ -101,33 +115,16 @@ void loop () {
     if(vin<6.98){mode=0;}*/
   }
 
-  //todo add counter for a way to lock / unlock output 
+  //todo add counter for a way to lock / unlock output
   getswitchstate();
+  updowncheck();
+  if (switchstate == HIGH) {
+    drawscreen();
+  }
+  if (switchstate == LOW) {
+    drawlivescreen();
+  }
 
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.print("Vout=");
-  display.setCursor(30, 0);
-  display.print(VFinal);
-  display.setCursor(0, 9);
-  display.print("Amp=");
-  display.setCursor(30, 9);
-  display.print(IFinal, 2);
-  display.setCursor(0, 18);
-  display.print("Watt=");
-  display.setCursor(30, 18);
-  display.print(WFinal, 1);
-  display.setCursor(70, 0);
-  display.print("Fire =");
-  display.setCursor(105, 0);
-  display.print(switchstate);
-  display.setCursor(70, 9);
-  display.print(RFinal, 2);
-  display.setCursor(70, 18);
-  display.print(dutycycle);
-  display.display();
 
   Serial.print(VFinal);
   Serial.print("   Volts");
@@ -137,9 +134,22 @@ void loop () {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getswitchstate() {
+
+  if (switchstate == LOW) {
+    readenable = 1;
+    samplepwm = 1;
+    pwmWrite(mosfetpin, 0);
+    VFinal = 0;
+    IFinal = 0;
+    WFinal = 0;
+    pulse = 0;
+    done = 0;
+    pulseran = 0;
+  }
+
+  delay(10);
   if (switchstate == HIGH) {
     readenable = 0;
-    readraws();
     if (mode == 2) {
 
       batmedvoltage();
@@ -158,26 +168,17 @@ void getswitchstate() {
   }
 
 
-  if (switchstate == LOW) {
-    readenable = 1;
-    samplepwm = 1;
-    pwmWrite(mosfetpin, 0);
-    VFinal = 0;
-    IFinal = 0;
-    WFinal = 0;
-    pulse = 0;
-    done = 0;
-    pulseran = 0;
-  }
+
 
 }
 void batmedvoltage() {
   if (pulseran == 0) {
-    pulsecheck();
+    pulsecheck(); 
   }
   if (pulse == 1) {
     pwmWrite(mosfetpin, outputpwm);
-
+    useroutput();
+    debounceuser();
   }
   else if (pulse == 0)
   {
@@ -229,14 +230,16 @@ void batlowvoltage() {
 void readraws() {
   VRaw = analogRead(A0);
   IRaw = analogRead(A1);
-  //these are for 1s 3.3v supplied boards use normal values for 5v or 2s/3s/4s configuration
-  //VFinal = VRaw / 57.75606;
-  //IFinal = IRaw / 22.22006;
-  //please uncomment these values and comment the ones above if you use a 2s->greater input
+#if defined(Arduino33)
+  VFinal = VRaw / 57.75606;
+  IFinal = IRaw / 22.22006;
+#else
   VFinal = VRaw / 12.99;
   IFinal = IRaw / 7.4;
+#endif
   RFinal = VFinal / IFinal;
   WFinal = VFinal * IFinal;
+
 }
 
 
@@ -244,7 +247,7 @@ void pulsecheck() {
   pwmWrite(mosfetpin, 255);
   readraws();
   delay(2);
-  if (RFinal > .01) {
+  if (RFinal > .015) {
     pulse = 1;
     pwmWrite(mosfetpin, 0);
   }
@@ -262,12 +265,13 @@ void pulsecheck() {
     noresistance();
     pwmWrite(mosfetpin, 0);
     pulseran = 0;
-    
+
   }
   pulseran = 1;
 }
 
 void noresistance() {
+#if defined(screen)
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -277,25 +281,96 @@ void noresistance() {
   display.print(pulse);
   display.display();
   delay(200);
+#endif
 }
 
 void updowncheck() {
-  if (digitalRead(switchstateup) == LOW)
+  if (switchstateup == LOW)
   {
     WUser++;
     delay(25);
   }
-  if (digitalRead(switchstatedown) == LOW)
+  if (switchstatedown == LOW)
   {
     WUser--;
     delay(25);
   }
-  if(WUser >= 150) WUser = 150;
-  {//display max wattage eror
-    
+  if (WUser >= 150) WUser = 150;
+  { //display max wattage eror
+
   }
-  if (WUser <= 0) WUser = 0;
+  if (WUser <= 1) WUser = 1;
   {
     // DIsplay min wattage error
   }
+}
+void useroutput() {
+  IUser = sqrt(WUser / RFinal);
+  VUser = IUser / WUser;
+
+}
+void debounceuser() {
+  if (IUser == NAN) {
+    IUser = 0;
+  }
+  if (VUser == NAN) {
+    VUser = 0;
+  }
+}
+void drawscreen() {
+#if defined(screen)
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.print("Vout=");
+  display.setCursor(30, 0);
+  display.print(VUser);
+  display.setCursor(0, 9);
+  display.print("Amp=");
+  display.setCursor(30, 9);
+  display.print(IUser, 2);
+  display.setCursor(0, 18);
+  display.print("Watt=");
+  display.setCursor(30, 18);
+  display.print(WUser);
+  display.setCursor(70, 0);
+  display.print("Fire =");
+  display.setCursor(105, 0);
+  display.print(switchstate);
+  display.setCursor(70, 9);
+  display.print(pulse);
+  display.setCursor(80, 9);
+  display.print(VFinal);
+  display.setCursor(70, 18);
+  display.print(RFinal);
+  display.display();
+#endif
+}
+
+void drawlivescreen() {
+#if defined(screen)
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.print("Vout=");
+  display.setCursor(30, 0);
+  display.print(VFinal);
+  display.setCursor(0, 9);
+  display.print("Amp=");
+  display.setCursor(30, 9);
+  display.print(IFinal, 2);
+  display.setCursor(0, 18);
+  display.print("Watt=");
+  display.setCursor(30, 18);
+  display.print(WUser);
+  display.setCursor(70, 0);
+  display.print("Fire =");
+  display.setCursor(105, 0);
+  display.print(switchstate);
+  display.setCursor(70, 9);
+  display.display();
+#endif
+}
 
