@@ -30,7 +30,6 @@ int output = 0;
 float VFinal;
 float IFinal;
 float RFinal;
-float WFinal;
 float WUser = 0;
 int VRaw;
 int IRaw;
@@ -99,9 +98,9 @@ void loop () {
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-  display.print("Vout=");
+  display.print("Batt=");
   display.setCursor(30, 0);
-  display.print(VFinal);
+  display.print(vin);
   display.setCursor(0, 9);
   display.print("Amps=");
   display.setCursor(30, 9);
@@ -136,7 +135,6 @@ void pulsecheck() {
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
     RFinal = VFinal / IFinal;
-    WFinal = VFinal * IFinal;
 
     if (RFinal > 0.1) {
       pulsestate = 1;
