@@ -36,9 +36,12 @@ int IRaw;
 int voltageValue = 0;
 float vout = 0.0;
 float vin = 0.0;
+float vRMS;
+//these values are for the resistors used in voltage divider
 float R1 = 100000.0;
 float R2 = 10000.0;
-float vRMS;
+
+
 
 
 void setup () {
@@ -73,7 +76,7 @@ void loop () {
   switchstatedown = digitalRead(downpin);
   
   if (switchstate == HIGH) {
-    //do fire stuff
+    //do fire stuff hehe
     pulsecheck();
     if (pulsestate == 1)
     {
