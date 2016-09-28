@@ -29,7 +29,7 @@ int uppin = 12;
 int downpin = 11;
 
 
-int32_t frequency = 120;
+int32_t frequency = 20000;
 bool switchstate;
 bool switchstateup;
 bool switchstatedown;
