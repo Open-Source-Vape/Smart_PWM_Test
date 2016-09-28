@@ -25,13 +25,13 @@ int pulsestate;
 int pulseran;
 int outputpwm = 0;
 int outputvalue = 0;
-int outputbutton = 0;
+int output = 0;
 
 float VFinal;
 float IFinal;
 float RFinal;
 float WFinal;
-byte WUser = 0;
+float WUser = 0;
 int VRaw;
 int IRaw;
 int voltageValue = 0;
@@ -39,6 +39,8 @@ float vout = 0.0;
 float vin = 0.0;
 float R1 = 100000.0;
 float R2 = 10000.0;
+float vRMS;
+
 
 void setup () {
   InitTimersSafe();
@@ -57,9 +59,10 @@ void setup () {
 }
 
 void loop () {
-  //only use these for analog pot
-  outputbutton = map(WUser, 0, 100, 0, 255);
-  //clean up this for VV/VW later
+  vRMS = sqrt(WUser * RFinal);
+  output = (vRMS/VFinal * vRMS/VFinal ) * 255;
+
+  //readbattery raw with voltage divider to get unloaded status
   voltageValue = analogRead(battpin);
   vout = (voltageValue * 5.26) / 1024.0;
   vin = vout / (R2 / (R1 + R2));
@@ -67,13 +70,13 @@ void loop () {
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
-
+  
   if (switchstate == HIGH) {
     //do fire stuff
     pulsecheck();
     if (pulsestate == 1)
     {
-      pwmWrite(mosfetpin, outputbutton);
+      pwmWrite(mosfetpin, output);
     }
   }
 
@@ -89,7 +92,7 @@ void loop () {
     pulseran = 0;
   }
   updowncheck();
-
+  
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -102,7 +105,7 @@ void loop () {
   display.setCursor(30, 9);
   display.print(IFinal);
   display.setCursor(0, 18);
-  display.print("Duty=");
+  display.print("Watt=");
   display.setCursor(30, 18);
   display.print(WUser, 1);
   display.setCursor(0, 27);
@@ -114,13 +117,9 @@ void loop () {
   display.setCursor(70, 9);
   display.print(RFinal, 2);
   display.setCursor(70, 18);
-  display.print(outputbutton);
+  display.print(output);
   display.setCursor(70, 27);
-  display.print(VRaw);
-  display.setCursor(100, 18);
-  display.print(pulsestate);
-  display.setCursor(100, 27);
-  display.print(pulseran);
+  display.print(VFinal);
   display.display();
 
 
@@ -152,7 +151,7 @@ void pulsecheck() {
     }
     digitalWrite(mosfetpin, LOW);
   }
-  /*if (pulsestate == 0) {
+  if (pulsestate == 0) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -163,7 +162,7 @@ void pulsecheck() {
     display.display();
     delay(100);
     pulseran = 0;
-  }*/
+  }
 }
 void updowncheck() {
   if (switchstateup == LOW)
@@ -176,7 +175,7 @@ void updowncheck() {
     WUser--;
     delay(25);
   }
-  if (WUser >= 100) WUser = 100;
+  if (WUser >= 300) WUser = 300;
   { //display max wattage eror
 
   }
