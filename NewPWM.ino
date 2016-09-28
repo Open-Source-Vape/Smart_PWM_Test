@@ -17,7 +17,7 @@ int uppin = 12;
 int downpin = 11;
 
 
-int32_t frequency = 10000;
+int32_t frequency = 500;
 bool switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -41,7 +41,7 @@ float vRMS;
 //these values are for the resistors used in voltage divider
 float R1 = 100000.0;
 float R2 = 10000.0;
-
+float battery;
 
 
 
@@ -63,19 +63,19 @@ void setup () {
 
 void loop () {
   vRMS = sqrt(WUser * RFinal);
-  output = (vRMS/VFinal * vRMS/VFinal ) * 255;
-    if (output >= 255){
-      output = 255;
-    }
-  //readbattery raw with voltage divider to get unloaded status
-  voltageValue = analogRead(battpin);
-  vout = (voltageValue * 5.26) / 1024.0;
-  vin = vout / (R2 / (R1 + R2));
+  output = (vRMS / VFinal * vRMS / VFinal ) * 255;
+  if (output >= 255) {
+    output = 255;
+  }
 
+  //readbattery raw with voltage divider to get unloaded status
+
+  readbattery();
+  drawbattery();
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
-  
+
   if (switchstate == HIGH) {
     //do fire stuff hehe
     pulsecheck();
@@ -98,14 +98,29 @@ void loop () {
   }
   updowncheck();
   project();
-  
+  drawbattery();
+
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-  display.print("Batt=");
-  display.setCursor(30, 0);
-  display.print(vin);
+  display.drawRect(0, 0, 30, 9, WHITE);
+  if (battery >= 95) {
+    display.drawRect(0, 0, 30, 9, WHITE);
+    display.fillRect(0, 0, 30, 9, WHITE);
+  }
+  if (battery == 45) {
+    display.drawRect(0, 0, 30, 9, WHITE);
+    display.fillRect(0, 0, 20, 9, WHITE);
+  }
+  if (battery <= 30) {
+    display.drawRect(0, 0, 30, 9, WHITE);
+    display.fillRect(0, 0, 10, 9, WHITE);
+  }
+  if (battery <= 10) {
+    display.drawRect(0, 0, 30, 9, WHITE);
+    display.fillRect(0, 0, 0, 9, WHITE);
+  }
   display.setCursor(0, 9);
   display.print("Amps=");
   display.setCursor(30, 9);
@@ -118,7 +133,7 @@ void loop () {
   display.print("Fire =");
   display.setCursor(105, 0);
   display.print(switchstate);
-  display.setCursor(70,9);
+  display.setCursor(70, 9);
   display.print("R=");
   display.setCursor(85, 9);
   display.print(RFinal, 2);
@@ -191,6 +206,21 @@ void updowncheck() {
 }
 
 void project() {
-  IProj = sqrt(WUser/RFinal);
+  IProj = sqrt(WUser / RFinal);
+}
+
+void drawbattery() {
+  battery = map (vin, 0, 8.4, 0, 100);
+
+}
+void readbattery() {
+  voltageValue = analogRead(battpin);
+  delay(10);
+  vout = (voltageValue * 5.26) / 1024.0;
+  vin = vout / (R2 / (R1 + R2));
+  if (vin < 0.09) {
+    vin = 0.0;
+  }
+
 }
 
