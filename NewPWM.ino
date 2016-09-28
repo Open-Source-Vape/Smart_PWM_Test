@@ -17,7 +17,7 @@ int uppin = 12;
 int downpin = 11;
 
 
-int32_t frequency = 120;
+int32_t frequency = 10000;
 bool switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -61,7 +61,9 @@ void setup () {
 void loop () {
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS/VFinal * vRMS/VFinal ) * 255;
-
+    if (output >= 255){
+      output = 255;
+    }
   //readbattery raw with voltage divider to get unloaded status
   voltageValue = analogRead(battpin);
   vout = (voltageValue * 5.26) / 1024.0;
