@@ -37,12 +37,13 @@ int IRaw;
 int voltageValue = 0;
 float vout = 0.0;
 float vin = 0.0;
-float R1 = 100000.0; 
-float R2 = 10000.0; 
+float R1 = 100000.0;
+float R2 = 10000.0;
 
 void setup () {
   InitTimersSafe();
   bool success = SetPinFrequencySafe(mosfetpin, frequency);
+  pinMode(mosfetpin, OUTPUT);
   if (success) {
     pinMode(13, OUTPUT);
     digitalWrite(13, HIGH);
@@ -59,79 +60,36 @@ void loop () {
   //only use these for analog pot
   outputbutton = map(WUser, 0, 100, 0, 255);
   //clean up this for VV/VW later
-  voltageValue=analogRead(battpin);
-  vout=(voltageValue*5.26)/1024.0;
-  vin = vout/ (R2/(R1+R2));
-  
+  voltageValue = analogRead(battpin);
+  vout = (voltageValue * 5.26) / 1024.0;
+  vin = vout / (R2 / (R1 + R2));
+
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
 
   if (switchstate == HIGH) {
     //do fire stuff
-    if (pulseran == 0) {
-      digitalWrite(mosfetpin, HIGH);
-      delay(20);
-      VRaw = analogRead(A0);
-      IRaw = analogRead(A1);
-      // these numbers are not valid ... yet...
-      //1s input
-      //VFinal = VRaw / 61.06;
-      //IFinal = IRaw / 23.37165;
-      //2s or greater ==
-      VFinal = VRaw / 42.03;
-      IFinal = IRaw / 16.99;
-      
-      RFinal = VFinal / IFinal;
-      WFinal = VFinal * IFinal;
-      
-      digitalWrite(mosfetpin, LOW);
-
-      if (RFinal > 0.1) {
-        pulsestate = 1;
-        pulseran = 1;
-      }
-      else if (RFinal <= 0) {
-        pulsestate = 0;
-        pulseran = 0;
-      }
-      else if (RFinal == NAN) {
-        pulsestate = 0;
-        pulseran = 0;
-        RFinal = 0;
-      }
-    }
-    if (pulsestate == 0) {
-      display.clearDisplay();
-      display.setTextSize(1);
-      display.setTextColor(WHITE);
-      display.setCursor(0, 0);
-      display.print("No Coil");
-      display.setCursor(0, 10);
-      display.print(pulsestate);
-      display.display();
-      delay(100);
-      pulseran = 0;
-    }
+    pulsecheck();
     if (pulsestate == 1)
     {
       pwmWrite(mosfetpin, outputbutton);
     }
   }
 
-  
-  
+
+
   delay(10);
 
-  
+
   if (switchstate == LOW) {
     //do not firing stuff
     if (pulsestate)
-    pwmWrite(mosfetpin,0);
+      pwmWrite(mosfetpin, 0);
     pulseran = 0;
   }
   updowncheck();
-  
+
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -147,7 +105,7 @@ void loop () {
   display.print("Duty=");
   display.setCursor(30, 18);
   display.print(WUser, 1);
-  display.setCursor(0,27);
+  display.setCursor(0, 27);
   display.print(vin);
   display.setCursor(70, 0);
   display.print("Fire =");
@@ -168,7 +126,45 @@ void loop () {
 
 }
 
+void pulsecheck() {
+  if (pulseran == 0) {
+    digitalWrite(mosfetpin, HIGH);
+    delay(45);
+    VRaw = analogRead(A0);
+    IRaw = analogRead(A1);
+    VFinal = VRaw / 12.99;
+    IFinal = IRaw / 7.4;
+    RFinal = VFinal / IFinal;
+    WFinal = VFinal * IFinal;
 
+    if (RFinal > 0.1) {
+      pulsestate = 1;
+      pulseran = 1;
+    }
+    else if (RFinal <= 0) {
+      pulsestate = 0;
+      pulseran = 0;
+    }
+    else if (RFinal == NAN) {
+      pulsestate = 0;
+      pulseran = 0;
+      RFinal = 0;
+    }
+    digitalWrite(mosfetpin, LOW);
+  }
+  /*if (pulsestate == 0) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.print("No Coil");
+    display.setCursor(0, 10);
+    display.print(pulsestate);
+    display.display();
+    delay(100);
+    pulseran = 0;
+  }*/
+}
 void updowncheck() {
   if (switchstateup == LOW)
   {
