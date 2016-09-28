@@ -31,6 +31,7 @@ float VFinal;
 float IFinal;
 float RFinal;
 float WUser = 0;
+float IProj;
 int VRaw;
 int IRaw;
 int voltageValue = 0;
@@ -96,6 +97,7 @@ void loop () {
     pulseran = 0;
   }
   updowncheck();
+  project();
   
   display.clearDisplay();
   display.setTextSize(1);
@@ -107,23 +109,23 @@ void loop () {
   display.setCursor(0, 9);
   display.print("Amps=");
   display.setCursor(30, 9);
-  display.print(IFinal);
+  display.print(IProj);
   display.setCursor(0, 18);
   display.print("Watt=");
   display.setCursor(30, 18);
   display.print(WUser, 1);
-  display.setCursor(0, 27);
-  display.print(vin);
   display.setCursor(70, 0);
   display.print("Fire =");
   display.setCursor(105, 0);
   display.print(switchstate);
-  display.setCursor(70, 9);
+  display.setCursor(70,9);
+  display.print("R=");
+  display.setCursor(85, 9);
   display.print(RFinal, 2);
   display.setCursor(70, 18);
-  display.print(output);
-  display.setCursor(70, 27);
-  display.print(VFinal);
+  display.print("Volt=");
+  display.setCursor(100, 18);
+  display.print(vRMS);
   display.display();
 
 
@@ -186,5 +188,9 @@ void updowncheck() {
   {
     // DIsplay min wattage error
   }
+}
+
+void project() {
+  IProj = sqrt(WUser/RFinal);
 }
 
