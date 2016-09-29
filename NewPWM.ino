@@ -53,7 +53,7 @@ float vRMS;
 //these values are for the resistors used in voltage divider
 float R1 = 100000.0;
 float R2 = 10000.0;
-float battery;
+int battery;
 
 
 
@@ -76,7 +76,7 @@ void setup () {
 void loop () {
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS / VFinal * vRMS / VFinal ) * 255;
-  output = constrain(0, 255);
+  output = constrain(output, 0, 255);
   //readbattery raw with voltage divider to get unloaded status
   readbattery();
   drawbattery();
@@ -113,16 +113,16 @@ void loop () {
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.drawRect(0, 0, 30, 9, WHITE);
-  if (battery >= 95) {
+  if (battery >= 80) {
     display.fillRect(0, 0, 30, 9, WHITE);
   }
-  if (battery == 45) {
+  else if (battery <= 45) {
     display.fillRect(0, 0, 20, 9, WHITE);
   }
-  if (battery <= 30) {
+  else if (battery <= 30) {
     display.fillRect(0, 0, 10, 9, WHITE);
   }
-  if (battery <= 10) {
+  else if (battery <= 10) {
     display.fillRect(0, 0, 0, 9, WHITE);
   }
   display.setCursor(0, 9);
@@ -133,6 +133,8 @@ void loop () {
   display.print("Watt=");
   display.setCursor(30, 18);
   display.print(WUser, 1);
+  display.setCursor(0,27);
+  display.print(battery);
   display.setCursor(70, 0);
   display.print("Fire =");
   display.setCursor(105, 0);
