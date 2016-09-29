@@ -76,12 +76,8 @@ void setup () {
 void loop () {
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS / VFinal * vRMS / VFinal ) * 255;
-  if (output >= 255) {
-    output = 255;
-  }
-
+  output = constrain(0, 255);
   //readbattery raw with voltage divider to get unloaded status
-
   readbattery();
   drawbattery();
   switchstate = digitalRead(firepin);
@@ -118,19 +114,15 @@ void loop () {
   display.setCursor(0, 0);
   display.drawRect(0, 0, 30, 9, WHITE);
   if (battery >= 95) {
-    display.drawRect(0, 0, 30, 9, WHITE);
     display.fillRect(0, 0, 30, 9, WHITE);
   }
   if (battery == 45) {
-    display.drawRect(0, 0, 30, 9, WHITE);
     display.fillRect(0, 0, 20, 9, WHITE);
   }
   if (battery <= 30) {
-    display.drawRect(0, 0, 30, 9, WHITE);
     display.fillRect(0, 0, 10, 9, WHITE);
   }
   if (battery <= 10) {
-    display.drawRect(0, 0, 30, 9, WHITE);
     display.fillRect(0, 0, 0, 9, WHITE);
   }
   display.setCursor(0, 9);
