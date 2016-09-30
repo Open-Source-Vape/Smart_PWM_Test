@@ -33,6 +33,8 @@ int32_t frequency = 20000;
 bool switchstate;
 bool switchstateup;
 bool switchstatedown;
+
+
 int pulsestate;
 int pulseran;
 int outputpwm = 0;
@@ -430,6 +432,63 @@ void drawbattery() {
       break;
     case 30:
       display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 29:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 28:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 27:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 26:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 25:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 24:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 23:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 22:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 21:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 20:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 19:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 18:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 17:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 16:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 15:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 14:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 13:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 12:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+    case 11:
+      display.fillRect(0, 0, 0, 9, WHITE);
       break;
     case 10:
       display.fillRect(0, 0, 0, 9, WHITE);
