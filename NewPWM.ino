@@ -1,14 +1,14 @@
 /*
- * Components used:
- * https://www.adafruit.com/products/931
- * https://www.sparkfun.com/products/9028
- * https://www.sparkfun.com/products/8374
- * https://www.sparkfun.com/products/13760
- * https://www.sparkfun.com/products/97
- * http://www.infineon.com/cms/en/product/power/power-mosfet/20v-300v-n-channel-power-mosfet/20v-30v-n-channel-power-mosfet/IRLS3813/productType.html?productType=5546d462533600a401533d4c1e1f77fa
- * https://www.radioshack.com/products/radioshack-220-ohm-1-4w-5-carbon-film-resistor-pk-5
- * place 220 ohm resistor between MCU pin 7 and gate on mosfet 
- */
+   Components used:
+   https://www.adafruit.com/products/931
+   https://www.sparkfun.com/products/9028
+   https://www.sparkfun.com/products/8374
+   https://www.sparkfun.com/products/13760
+   https://www.sparkfun.com/products/97
+   http://www.infineon.com/cms/en/product/power/power-mosfet/20v-300v-n-channel-power-mosfet/20v-30v-n-channel-power-mosfet/IRLS3813/productType.html?productType=5546d462533600a401533d4c1e1f77fa
+   https://www.radioshack.com/products/radioshack-220-ohm-1-4w-5-carbon-film-resistor-pk-5
+   place 220 ohm resistor between MCU pin 7 and gate on mosfet
+*/
 
 #include <PWM.h>
 #include <Wire.h>
@@ -104,47 +104,52 @@ void loop () {
   }
   updowncheck();
   project();
-  drawbattery();
+
 
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   display.drawRect(0, 0, 30, 9, WHITE);
-  if (battery >= 80) {
-    display.fillRect(0, 0, 30, 9, WHITE);
+  drawbattery();
+  if (IProj == NAN) {
+    IProj = 0;
   }
-  else if (battery <= 45) {
-    display.fillRect(0, 0, 20, 9, WHITE);
+  if (IProj == INFINITY) {
+    IProj = 0;
   }
-  else if (battery <= 30) {
-    display.fillRect(0, 0, 10, 9, WHITE);
+  if (vRMS == NAN) {
+    vRMS = 0;
   }
-  else if (battery <= 10) {
-    display.fillRect(0, 0, 0, 9, WHITE);
+  if (RFinal == NAN) {
+    RFinal == 0;
   }
-  display.setCursor(32,0);
+  display.setCursor(32, 0);
   display.print("%");
-  display.setCursor(40,0);
+  display.setCursor(40, 0);
   display.print(battery);
   display.setCursor(0, 12);
   display.print("Amp= ");
   display.setCursor(23, 12);
   display.print(IProj, 1);
-  display.setCursor(0,23);
+  display.setCursor(0, 23);
   display.print("Volt=");
   display.setCursor(32, 23);
   display.print(vRMS);
   display.setCursor(65, 0);
   display.setTextSize(2);
   display.print("W=");
-  display.setCursor(88,0);
+  display.setCursor(88, 0);
   display.print(WUser, 0);
   display.setTextSize(1);
-  display.setCursor(65,18);
+  display.setCursor(65, 15);
   display.print("R=");
-  display.setCursor(77,18);
+  display.setCursor(77, 15);
   display.print(RFinal, 2);
+  display.setCursor(65, 23);
+  display.print("Duty=");
+  display.setCursor(95, 23);
+  display.print(output);
   display.display();
 
 
@@ -215,6 +220,221 @@ void project() {
 
 void drawbattery() {
   battery = map (vin, 0, 8.4, 0, 100);
+  switch (battery) {
+    case 100:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 99:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 98:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 97:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 96:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 95:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 94:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 93:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 92:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 91:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 90:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 89:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 88:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 87:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 86:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 85:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 84:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 83:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 82:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 81:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 80:
+      display.fillRect(0, 0, 30, 9, WHITE);
+      break;
+    case 79:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 77:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 76:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 75:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 74:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 73:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 72:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 71:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 70:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 69:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 68:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 67:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 66:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 65:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 64:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 63:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 62:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 61:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 60:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 59:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 58:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 57:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 56:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 55:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 54:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 53:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 52:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 51:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 50:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 49:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 48:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 47:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 46:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 45:
+      display.fillRect(0, 0, 20, 9, WHITE);
+      break;
+    case 44:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 43:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 42:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 41:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 40:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 39:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 38:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 37:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 36:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 35:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 34:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 33:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 32:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 31:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 30:
+      display.fillRect(0, 0, 10, 9, WHITE);
+      break;
+    case 10:
+      display.fillRect(0, 0, 0, 9, WHITE);
+      break;
+  }
 
 }
 void readbattery() {
