@@ -93,8 +93,6 @@ void loop () {
     }
   }
 
-
-
   delay(10);
 
 
@@ -125,28 +123,28 @@ void loop () {
   else if (battery <= 10) {
     display.fillRect(0, 0, 0, 9, WHITE);
   }
-  display.setCursor(0, 9);
-  display.print("Amps=");
-  display.setCursor(30, 9);
-  display.print(IProj);
-  display.setCursor(0, 18);
-  display.print("Watt=");
-  display.setCursor(30, 18);
-  display.print(WUser, 1);
-  display.setCursor(0,27);
+  display.setCursor(32,0);
+  display.print("%");
+  display.setCursor(40,0);
   display.print(battery);
-  display.setCursor(70, 0);
-  display.print("Fire =");
-  display.setCursor(105, 0);
-  display.print(switchstate);
-  display.setCursor(70, 9);
-  display.print("R=");
-  display.setCursor(85, 9);
-  display.print(RFinal, 2);
-  display.setCursor(70, 18);
+  display.setCursor(0, 12);
+  display.print("Amp= ");
+  display.setCursor(23, 12);
+  display.print(IProj, 1);
+  display.setCursor(0,23);
   display.print("Volt=");
-  display.setCursor(100, 18);
+  display.setCursor(32, 23);
   display.print(vRMS);
+  display.setCursor(65, 0);
+  display.setTextSize(2);
+  display.print("W=");
+  display.setCursor(88,0);
+  display.print(WUser, 0);
+  display.setTextSize(1);
+  display.setCursor(65,18);
+  display.print("R=");
+  display.setCursor(77,18);
+  display.print(RFinal, 2);
   display.display();
 
 
