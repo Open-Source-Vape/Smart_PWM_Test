@@ -10,6 +10,7 @@
    place 220 ohm resistor between MCU pin 7 and gate on mosfet
 */
 
+#include <Button.h>
 #include <PWM.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -22,12 +23,11 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define LOGO16_GLCD_HEIGHT 16
 #define LOGO16_GLCD_WIDTH  16
 
-int battpin = A2;
-int firepin = 7;
-int mosfetpin = 3;
-int uppin = 12;
-int downpin = 11;
-
+#define uppin 12
+#define downpin 11
+#define firepin 7
+#define battpin A2
+#define mosfetpin 3
 
 int32_t frequency = 20000;
 bool switchstate;
