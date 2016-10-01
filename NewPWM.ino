@@ -29,10 +29,11 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define battpin A2
 #define mosfetpin 3
 
-int32_t frequency = 20000;
+int32_t frequency = 120;
 bool switchstate;
 bool switchstateup;
 bool switchstatedown;
+bool powerlock = 0;
 
 
 int pulsestate;
@@ -114,22 +115,10 @@ void loop () {
   display.setCursor(0, 0);
   display.drawRect(0, 0, 30, 9, WHITE);
   drawbattery();
-  if (IProj == NAN) {
-    IProj = 0;
-  }
-  if (IProj == INFINITY) {
-    IProj = 0;
-  }
-  if (vRMS == NAN) {
-    vRMS = 0;
-  }
-  if (RFinal == NAN) {
-    RFinal == 0;
-  }
   display.setCursor(32, 0);
   display.print("%");
   display.setCursor(40, 0);
-  display.print(battery);
+  display.print(vin);
   display.setCursor(0, 12);
   display.print("Amp= ");
   display.setCursor(23, 12);
@@ -151,7 +140,7 @@ void loop () {
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(output);
+  display.print(powerlock);
   display.display();
 
 
@@ -165,7 +154,7 @@ void pulsecheck() {
     IRaw = analogRead(A1);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal;
+    RFinal = VFinal / IFinal - 0.30;
 
     if (RFinal > 0.1) {
       pulsestate = 1;
@@ -180,6 +169,7 @@ void pulsecheck() {
       pulseran = 0;
       RFinal = 0;
     }
+    
     digitalWrite(mosfetpin, LOW);
   }
   if (pulsestate == 0) {
@@ -193,9 +183,22 @@ void pulsecheck() {
     display.display();
     delay(100);
     pulseran = 0;
+    if (IProj == NAN) {
+    IProj = 0;
+  }
+  if (IProj == INFINITY) {
+    IProj = 0;
+  }
+  if (vRMS == NAN) {
+    vRMS = 0;
+  }
+  if (RFinal == NAN) {
+    RFinal == 0;
+  }
   }
 }
 void updowncheck() {
+ if(powerlock==0){
   if (switchstateup == LOW)
   {
     WUser++;
@@ -205,6 +208,15 @@ void updowncheck() {
   {
     WUser--;
     delay(25);
+  }
+ }
+  switch(switchstateup == LOW & switchstatedown == LOW){
+  if(powerlock==1){
+    powerlock=0;
+  }
+  if(powerlock==0){
+    powerlock=1;
+  }
   }
   if (WUser >= 300) WUser = 300;
   { //display max wattage eror
@@ -498,7 +510,6 @@ void drawbattery() {
 }
 void readbattery() {
   voltageValue = analogRead(battpin);
-  delay(10);
   vout = (voltageValue * 5.26) / 1024.0;
   vin = vout / (R2 / (R1 + R2));
   if (vin < 0.09) {
