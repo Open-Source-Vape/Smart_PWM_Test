@@ -10,7 +10,6 @@
    place 220 ohm resistor between MCU pin 7 and gate on mosfet
 */
 
-#include <Button.h>
 #include <PWM.h>
 #include <Wire.h>
 #include <SPI.h>
