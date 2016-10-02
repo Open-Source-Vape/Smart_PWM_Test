@@ -233,7 +233,7 @@ void updowncheck() {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
       if (secs_held >= 4) {
-        WUser = WUser+5;
+        WUser = WUser+2;
       }
       if (secs_held <= 3) {
         WUser ++;
@@ -265,7 +265,7 @@ void updowncheck() {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
       if (secs_held >= 4) {
-        WUser = WUser -5;
+        WUser = WUser -2;
       }
       if (secs_held <= 3) {
         WUser --;
