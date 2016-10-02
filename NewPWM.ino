@@ -118,33 +118,33 @@ void loop () {
     secondslock = millis_wait / 100;
 
     if (secs_held >= 3) {
-    if (lock == 0) {
-      //do fire stuff hehe
-      pulsecheck();
-      if (pulsestate == 1 && lock == 0)
-      {
-        pwmWrite(mosfetpin, output);
-      }
-    }
-   }
-
-}
-    if (secs_held <= 3 && switchstate != last_state) {
-
-
-      if (secondslock <= 5) {
-        counter++;
-        if (counter >= 3 && lock == 0) {
-          counter = 0;
-          lock = 1;
-        }
-        if (counter >= 3 && lock == 1) {
-          lock = 0;
-          counter = 0;
+      if (lock == 0) {
+        //do fire stuff hehe
+        pulsecheck();
+        if (pulsestate == 1 && lock == 0)
+        {
+          pwmWrite(mosfetpin, output);
         }
       }
     }
-  
+
+  }
+  if (secs_held <= 3 && switchstate != last_state) {
+
+
+    if (secondslock <= 5) {
+      counter++;
+      if (counter >= 3 && lock == 0) {
+        counter = 0;
+        lock = 1;
+      }
+      if (counter >= 3 && lock == 1) {
+        lock = 0;
+        counter = 0;
+      }
+    }
+  }
+
   delay(10);
 
   previous = switchstate;
@@ -163,45 +163,45 @@ void loop () {
   updowncheck();
   project();
 
-if (lock == 0) {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.drawRect(0, 0, 30, 9, WHITE);
-  drawbattery();
-  display.setCursor(32, 0);
-  display.print("%");
-  display.setCursor(40, 0);
-  display.print(battery);
-  display.setCursor(0, 12);
-  display.print("Amp= ");
-  display.setCursor(23, 12);
-  display.print(IProj, 1);
-  display.setCursor(0, 23);
-  display.print("Volt=");
-  display.setCursor(32, 23);
-  display.print(vRMS);
-  display.setCursor(65, 0);
-  display.setTextSize(2);
-  display.print("W=");
-  display.setCursor(88, 0);
-  display.print(WUser, 0);
-  display.setTextSize(1);
-  display.setCursor(65, 15);
-  display.print("R=");
-  display.setCursor(77, 15);
-  display.print(counter);
-  display.setCursor(65, 23);
-  display.print("Duty=");
-  display.setCursor(95, 23);
-  display.print(lock);
-  display.display();
-}
-if (lock == 1){
-  display.clearDisplay();
-  display.display();
-}
+  if (lock == 0) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.drawRect(0, 0, 30, 9, WHITE);
+    drawbattery();
+    display.setCursor(32, 0);
+    display.print("%");
+    display.setCursor(40, 0);
+    display.print(battery);
+    display.setCursor(0, 12);
+    display.print("Amp= ");
+    display.setCursor(23, 12);
+    display.print(IProj, 1);
+    display.setCursor(0, 23);
+    display.print("Volt=");
+    display.setCursor(32, 23);
+    display.print(vRMS);
+    display.setCursor(65, 0);
+    display.setTextSize(2);
+    display.print("W=");
+    display.setCursor(88, 0);
+    display.print(WUser, 0);
+    display.setTextSize(1);
+    display.setCursor(65, 15);
+    display.print("R=");
+    display.setCursor(77, 15);
+    display.print(counter);
+    display.setCursor(65, 23);
+    display.print("Duty=");
+    display.setCursor(95, 23);
+    display.print(lock);
+    display.display();
+  }
+  if (lock == 1) {
+    display.clearDisplay();
+    display.display();
+  }
 
 }
 
@@ -660,7 +660,7 @@ void lockmath() {
     if (lock >= 1) {
       lock = 1;
     }
-    
+
   }/*
   if (lock == 1) {
     lock = 0;
