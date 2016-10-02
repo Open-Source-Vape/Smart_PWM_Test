@@ -145,7 +145,7 @@ if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200){
   display.setCursor(0, 23);
   display.print("Volt=");
   display.setCursor(32, 23);
-  display.print(switchstateup);
+  display.print(vRMS);
   display.setCursor(65, 0);
   display.setTextSize(2);
   display.print("W=");
@@ -159,7 +159,7 @@ if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200){
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(secs_held);
+  display.print(output);
   display.display();
 
 
@@ -239,11 +239,6 @@ void updowncheck() {
       WUser ++;
     }
   }
-   /* if (switchstateup == HIGH)
-    {
-      WUser++;
-      delay(25);
-    }*/
     switch (batt_type) {
       case twoS:
         constrain_2s();
