@@ -64,6 +64,8 @@ long millis_held;
 long prev_secs_held;
 long secs_held;
 byte previous = LOW;
+byte previousup = LOW;
+byte previousdown = LOW;
 unsigned long firsttime;
 
 void setup () {
@@ -223,11 +225,25 @@ void pulsecheck() {
 }
 void updowncheck() {
   if (powerlock == 0) {
-    if (switchstateup == HIGH)
+    if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200){
+  firsttime = millis();
+}
+
+  if (switchstateup == HIGH) {
+    millis_held = (millis() - firsttime);
+    secs_held = millis_held / 100;
+    if (secs_held >= 10) {
+      WUser++ * 10; 
+    }
+    if (secs_held <= 10) {
+      WUser ++;
+    }
+  }
+   /* if (switchstateup == HIGH)
     {
       WUser++;
       delay(25);
-    }
+    }*/
     switch (batt_type) {
       case twoS:
         constrain_2s();
@@ -242,6 +258,9 @@ void updowncheck() {
         constrain_2s();
         break;
     }
+    
+    previousup = switchstateup;
+    
     if (switchstatedown == HIGH)
     {
       WUser--;
