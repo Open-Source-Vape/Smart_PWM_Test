@@ -96,9 +96,9 @@ void loop () {
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
 
-if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200){
-  firsttime = millis();
-}
+  if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
+    firsttime = millis();
+  }
 
   if (switchstate == HIGH) {
     millis_held = (millis() - firsttime);
@@ -174,7 +174,7 @@ void pulsecheck() {
     delay(20);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal - .26;
+    RFinal = VFinal / IFinal - .26; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
 
     if (RFinal > 0.25) {
       pulsestate = 1;
@@ -225,20 +225,20 @@ void pulsecheck() {
 }
 void updowncheck() {
   if (powerlock == 0) {
-    if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200){
-  firsttime = millis();
-}
+    if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
+      firsttime = millis();
+    }
 
-  if (switchstateup == HIGH) {
-    millis_held = (millis() - firsttime);
-    secs_held = millis_held / 100;
-    if (secs_held >= 10) {
-      WUser++ * 10; 
+    if (switchstateup == HIGH) {
+      millis_held = (millis() - firsttime);
+      secs_held = millis_held / 100;
+      if (secs_held >= 10) {
+        WUser++ * 10;
+      }
+      if (secs_held <= 10) {
+        WUser ++;
+      }
     }
-    if (secs_held <= 10) {
-      WUser ++;
-    }
-  }
     switch (batt_type) {
       case twoS:
         constrain_2s();
@@ -253,9 +253,25 @@ void updowncheck() {
         constrain_2s();
         break;
     }
-    
+
     previousup = switchstateup;
-    
+
+    if (switchstatedown == HIGH && previousdown == LOW && (millis() - firsttime) > 200) {
+      firsttime = millis();
+    }
+
+    if (switchstatedown == HIGH) {
+      millis_held = (millis() - firsttime);
+      secs_held = millis_held / 100;
+      if (secs_held >= 2) {
+        WUser-- * 10;
+      }
+      if (secs_held <= 2) {
+        WUser --;
+      }
+    }
+    previousdown = switchstatedown;
+
     if (switchstatedown == HIGH)
     {
       WUser--;
