@@ -10,6 +10,7 @@
    place 220 ohm resistor between MCU pin 7 and gate on mosfet
 */
 
+#include <Button.h>
 #include <PWM.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -29,11 +30,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define mosfetpin 3
 
 int32_t frequency = 120;
-bool switchstate;
-bool switchstateup;
-bool switchstatedown;
+int switchstate;
+int switchstateup;
+int switchstatedown;
 bool powerlock = 0;
-
 
 int pulsestate;
 int pulseran;
@@ -57,7 +57,11 @@ float R1 = 100000.0;
 float R2 = 10000.0;
 int battery;
 
-
+long millis_held;
+long prev_secs_held;
+long secs_held;
+byte previous = LOW;
+unsigned long firsttime;
 
 void setup () {
   InitTimersSafe();
@@ -82,19 +86,24 @@ void loop () {
   //readbattery raw with voltage divider to get unloaded status
   readbattery();
   drawbattery();
+
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
 
+
   if (switchstate == HIGH) {
-    //do fire stuff hehe
-    pulsecheck();
-    if (pulsestate == 1)
-    {
-      pwmWrite(mosfetpin, output);
+    millis_held = (millis() - firsttime);
+    secs_held = millis_held / 100;
+    if (secs_held >= 500) {
+      //do fire stuff hehe
+      pulsecheck();
+      if (pulsestate == 1)
+      {
+        pwmWrite(mosfetpin, output);
+      }
     }
   }
-
   delay(10);
 
 
@@ -103,7 +112,9 @@ void loop () {
     if (pulsestate)
       pwmWrite(mosfetpin, 0);
     pulseran = 0;
+    millis_held = 0;
   }
+
   updowncheck();
   project();
 
@@ -117,15 +128,15 @@ void loop () {
   display.setCursor(32, 0);
   display.print("%");
   display.setCursor(40, 0);
-  display.print(vin);
+  display.print(battery);
   display.setCursor(0, 12);
   display.print("Amp= ");
   display.setCursor(23, 12);
-  display.print(IProj, 1);
+  display.print(IFinal, 1);
   display.setCursor(0, 23);
   display.print("Volt=");
   display.setCursor(32, 23);
-  display.print(vRMS);
+  display.print(VFinal);
   display.setCursor(65, 0);
   display.setTextSize(2);
   display.print("W=");
@@ -139,7 +150,7 @@ void loop () {
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(powerlock);
+  display.print(output);
   display.display();
 
 
@@ -148,16 +159,23 @@ void loop () {
 void pulsecheck() {
   if (pulseran == 0) {
     digitalWrite(mosfetpin, HIGH);
-    delay(45);
+    delay(10);
     VRaw = analogRead(A0);
     IRaw = analogRead(A1);
+    delay(20);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal - 0.30;
-
-    if (RFinal > 0.1) {
+    RFinal = VFinal / IFinal - .26;
+    
+    if (RFinal > 0.25) {
       pulsestate = 1;
       pulseran = 1;
+    }
+    if (RFinal >= 0.1 | RFinal <=.23 | VFinal > 10){
+      //low resistance message
+      pulsestate=0;
+      pulseran =0 ;
+      RFinal = 0;
     }
     else if (RFinal <= 0) {
       pulsestate = 0;
@@ -168,7 +186,7 @@ void pulsecheck() {
       pulseran = 0;
       RFinal = 0;
     }
-    
+
     digitalWrite(mosfetpin, LOW);
   }
   if (pulsestate == 0) {
@@ -183,41 +201,41 @@ void pulsecheck() {
     delay(100);
     pulseran = 0;
     if (IProj == NAN) {
-    IProj = 0;
-  }
-  if (IProj == INFINITY) {
-    IProj = 0;
-  }
-  if (vRMS == NAN) {
-    vRMS = 0;
-  }
-  if (RFinal == NAN) {
-    RFinal == 0;
-  }
+      IProj = 0;
+    }
+    if (IProj == INFINITY) {
+      IProj = 0;
+    }
+    if (vRMS == NAN) {
+      vRMS = 0;
+    }
+    if (RFinal == NAN) {
+      RFinal == 0;
+    }
   }
 }
 void updowncheck() {
- if(powerlock==0){
-  if (switchstateup == LOW)
-  {
-    WUser++;
-    delay(25);
+  if (powerlock == 0) {
+    if (switchstateup == LOW)
+    {
+      WUser++;
+      delay(25);
+    }
+    if (switchstatedown == LOW)
+    {
+      WUser--;
+      delay(25);
+    }
   }
-  if (switchstatedown == LOW)
-  {
-    WUser--;
-    delay(25);
+  switch (switchstateup == LOW && switchstatedown == LOW) {
+      if (powerlock == 1) {
+        powerlock = 0;
+      }
+      if (powerlock == 0) {
+        powerlock = 1;
+      }
   }
- }
-  switch(switchstateup == LOW & switchstatedown == LOW){
-  if(powerlock==1){
-    powerlock=0;
-  }
-  if(powerlock==0){
-    powerlock=1;
-  }
-  }
-  if (WUser >= 300) WUser = 300;
+  if (WUser >= 250) WUser = 250;
   { //display max wattage eror
 
   }
