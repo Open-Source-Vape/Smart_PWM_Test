@@ -29,10 +29,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define battpin A2
 #define mosfetpin 3
 
-int32_t frequency = 120;
+int32_t frequency = 10000;
 int switchstate;
-int switchstateup;
-int switchstatedown;
+bool switchstateup;
+bool switchstatedown;
 bool powerlock = 0;
 
 int pulsestate;
@@ -76,7 +76,7 @@ void setup () {
   }
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
-  pinMode(uppin, INPUT);
+  pinMode(uppin, INPUT_PULLUP);
   pinMode(downpin, INPUT);
   pinMode(firepin, INPUT);
   pinMode(battpin, INPUT);
@@ -139,7 +139,7 @@ void loop () {
   display.setCursor(0, 23);
   display.print("Volt=");
   display.setCursor(32, 23);
-  display.print(vRMS);
+  display.print(switchstateup);
   display.setCursor(65, 0);
   display.setTextSize(2);
   display.print("W=");
@@ -153,7 +153,7 @@ void loop () {
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(output);
+  display.print(switchstatedown);
   display.display();
 
 
@@ -219,7 +219,7 @@ void pulsecheck() {
 }
 void updowncheck() {
   if (powerlock == 0) {
-    if (switchstateup == LOW)
+    if (switchstateup == HIGH)
     {
       WUser++;
       delay(25);
@@ -238,7 +238,7 @@ void updowncheck() {
         constrain_2s();
         break;
     }
-    if (switchstatedown == LOW)
+    if (switchstatedown == HIGH)
     {
       WUser--;
       delay(25);
@@ -256,7 +256,6 @@ void updowncheck() {
         powerlock = 1;
       }
   }
-
 }
 
 void project() {
