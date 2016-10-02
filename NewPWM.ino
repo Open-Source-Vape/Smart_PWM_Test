@@ -118,6 +118,7 @@ void loop () {
     secondslock = millis_wait / 100;
 
     if (secs_held >= 3) {
+    if (lock == 0) {
       //do fire stuff hehe
       pulsecheck();
       if (pulsestate == 1 && lock == 0)
@@ -125,8 +126,9 @@ void loop () {
         pwmWrite(mosfetpin, output);
       }
     }
+   }
 
-
+}
     if (secs_held <= 3 && switchstate != last_state) {
 
 
@@ -142,7 +144,7 @@ void loop () {
         }
       }
     }
-  }
+  
   delay(10);
 
   previous = switchstate;
