@@ -56,6 +56,9 @@ float vRMS;
 float R1 = 100000.0;
 float R2 = 10000.0;
 int battery;
+enum {twoS, threeS, fourS};
+
+byte batt_type;
 
 long millis_held;
 long prev_secs_held;
@@ -166,15 +169,15 @@ void pulsecheck() {
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
     RFinal = VFinal / IFinal - .26;
-    
+
     if (RFinal > 0.25) {
       pulsestate = 1;
       pulseran = 1;
     }
-    if (RFinal >= 0.1 | RFinal <=.23 | VFinal > 10){
+    if (RFinal >= 0.1 | RFinal <= .23 | VFinal > 10) {
       //low resistance message
-      pulsestate=0;
-      pulseran =0 ;
+      pulsestate = 0;
+      pulseran = 0 ;
       RFinal = 0;
     }
     else if (RFinal <= 0) {
@@ -221,10 +224,28 @@ void updowncheck() {
       WUser++;
       delay(25);
     }
+    switch (batt_type) {
+      case twoS:
+        constrain_2s();
+        break;
+      case threeS:
+        constrain_3s();
+        break;
+      case fourS:
+        constrain_4s();
+        break;
+      default:
+        constrain_2s();
+        break;
+    }
     if (switchstatedown == LOW)
     {
       WUser--;
       delay(25);
+    }
+    if (WUser <= 1) WUser = 1;
+    {
+      // DIsplay min wattage error
     }
   }
   switch (switchstateup == LOW && switchstatedown == LOW) {
@@ -235,14 +256,7 @@ void updowncheck() {
         powerlock = 1;
       }
   }
-  if (WUser >= 250) WUser = 250;
-  { //display max wattage eror
 
-  }
-  if (WUser <= 1) WUser = 1;
-  {
-    // DIsplay min wattage error
-  }
 }
 
 void project() {
@@ -532,6 +546,36 @@ void readbattery() {
   if (vin < 0.09) {
     vin = 0.0;
   }
+  if (vin >= 6.8 & vin <= 8.8) {
+    batt_type = twoS;
+  }
+  if (vin >= 10.5 & vin <= 13.2) {
+    batt_type = threeS;
+  }
+  if (vin >= 14 & vin <= 17.6) {
+    batt_type = fourS;
+  }
 
+}
+
+void constrain_2s() {
+  if (WUser >= 250) WUser = 250;
+  { //display max wattage eror
+
+  }
+}
+
+void constrain_3s() {
+  if (WUser >= 375) WUser = 375;
+  { //display max wattage eror
+
+  }
+}
+
+void constrain_4s() {
+  if (WUser >= 500) WUser = 500;
+  { //display max wattage eror
+
+  }
 }
 
