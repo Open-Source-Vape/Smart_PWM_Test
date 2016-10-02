@@ -34,6 +34,7 @@ int switchstate;
 bool switchstateup;
 bool switchstatedown;
 bool powerlock = 0;
+int lock;
 
 int pulsestate;
 int pulseran;
@@ -61,12 +62,17 @@ enum {twoS, threeS, fourS};
 byte batt_type;
 
 long millis_held;
+long millis_wait;
 long prev_secs_held;
 long secs_held;
+long secondslock;
 byte previous = LOW;
 byte previousup = LOW;
 byte previousdown = LOW;
 unsigned long firsttime;
+unsigned long locktime;
+int counter = 0;
+int last_state = 0;
 
 void setup () {
   InitTimersSafe();
@@ -98,12 +104,20 @@ void loop () {
 
   if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
     firsttime = millis();
-  }
 
+  }
+  if (switchstate != last_state && (secondslock > 15) ) {
+    locktime = millis();
+    counter = 0;
+  }
   if (switchstate == HIGH) {
+
     millis_held = (millis() - firsttime);
     secs_held = millis_held / 100;
-    if (secs_held >= 2) {
+    millis_wait = (millis() - locktime);
+    secondslock = millis_wait / 100;
+
+    if (secs_held >= 3) {
       //do fire stuff hehe
       pulsecheck();
       if (pulsestate == 1)
@@ -111,9 +125,29 @@ void loop () {
         pwmWrite(mosfetpin, output);
       }
     }
+
+
+    if (secs_held <= 3 && switchstate != last_state) {
+
+
+      if (secondslock <= 5) {
+        counter++;
+        if (counter >= 3 && lock == 0) {
+          counter = 0;
+          lock = 1;
+        }
+        if (counter >= 3 && lock == 1) {
+          lock = 0;
+          counter = 0;
+        }
+      }
+    }
   }
   delay(10);
+
   previous = switchstate;
+  last_state = switchstate;
+
 
   if (switchstate == LOW) {
     //do not firing stuff
@@ -155,11 +189,11 @@ void loop () {
   display.setCursor(65, 15);
   display.print("R=");
   display.setCursor(77, 15);
-  display.print(RFinal, 2);
+  display.print(counter);
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(secs_held);
+  display.print(lock);
   display.display();
 
 
@@ -233,7 +267,7 @@ void updowncheck() {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
       if (secs_held >= 4) {
-        WUser = WUser+2;
+        WUser = WUser + 2;
       }
       if (secs_held <= 3) {
         WUser ++;
@@ -265,7 +299,7 @@ void updowncheck() {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
       if (secs_held >= 4) {
-        WUser = WUser -2;
+        WUser = WUser - 2;
       }
       if (secs_held <= 3) {
         WUser --;
@@ -612,5 +646,18 @@ void constrain_4s() {
   { //display max wattage eror
 
   }
+}
+
+void lockmath() {
+  if (lock == 0) {
+    lock++;
+    if (lock >= 1) {
+      lock = 1;
+    }
+    
+  }/*
+  if (lock == 1) {
+    lock = 0;
+  }*/
 }
 
