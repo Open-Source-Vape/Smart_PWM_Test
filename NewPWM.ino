@@ -120,7 +120,7 @@ void loop () {
     if (secs_held >= 3) {
       //do fire stuff hehe
       pulsecheck();
-      if (pulsestate == 1)
+      if (pulsestate == 1 && lock == 0)
       {
         pwmWrite(mosfetpin, output);
       }
@@ -161,7 +161,7 @@ void loop () {
   updowncheck();
   project();
 
-
+if (lock == 0) {
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -195,7 +195,11 @@ void loop () {
   display.setCursor(95, 23);
   display.print(lock);
   display.display();
-
+}
+if (lock == 1){
+  display.clearDisplay();
+  display.display();
+}
 
 }
 
