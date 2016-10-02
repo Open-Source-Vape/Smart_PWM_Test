@@ -103,7 +103,7 @@ void loop () {
   if (switchstate == HIGH) {
     millis_held = (millis() - firsttime);
     secs_held = millis_held / 100;
-    if (secs_held >= 10) {
+    if (secs_held >= 2) {
       //do fire stuff hehe
       pulsecheck();
       if (pulsestate == 1)
@@ -159,7 +159,7 @@ void loop () {
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(output);
+  display.print(secs_held);
   display.display();
 
 
@@ -232,11 +232,12 @@ void updowncheck() {
     if (switchstateup == HIGH) {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
-      if (secs_held >= 10) {
-        WUser++ * 10;
+      if (secs_held >= 4) {
+        WUser = WUser+5;
       }
-      if (secs_held <= 10) {
+      if (secs_held <= 3) {
         WUser ++;
+        delay(100);
       }
     }
     switch (batt_type) {
@@ -263,11 +264,12 @@ void updowncheck() {
     if (switchstatedown == HIGH) {
       millis_held = (millis() - firsttime);
       secs_held = millis_held / 100;
-      if (secs_held >= 2) {
-        WUser-- * 10;
+      if (secs_held >= 4) {
+        WUser = WUser -5;
       }
-      if (secs_held <= 2) {
+      if (secs_held <= 3) {
         WUser --;
+        delay(100);
       }
     }
     previousdown = switchstatedown;
