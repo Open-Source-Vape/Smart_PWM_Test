@@ -132,11 +132,11 @@ void loop () {
   display.setCursor(0, 12);
   display.print("Amp= ");
   display.setCursor(23, 12);
-  display.print(IFinal, 1);
+  display.print(IProj, 1);
   display.setCursor(0, 23);
   display.print("Volt=");
   display.setCursor(32, 23);
-  display.print(VFinal);
+  display.print(vRMS);
   display.setCursor(65, 0);
   display.setTextSize(2);
   display.print("W=");
