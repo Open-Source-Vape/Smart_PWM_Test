@@ -94,11 +94,14 @@ void loop () {
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
 
+if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200){
+  firsttime = millis();
+}
 
   if (switchstate == HIGH) {
     millis_held = (millis() - firsttime);
     secs_held = millis_held / 100;
-    if (secs_held >= 500) {
+    if (secs_held >= 10) {
       //do fire stuff hehe
       pulsecheck();
       if (pulsestate == 1)
@@ -108,7 +111,7 @@ void loop () {
     }
   }
   delay(10);
-
+  previous = switchstate;
 
   if (switchstate == LOW) {
     //do not firing stuff
@@ -116,6 +119,7 @@ void loop () {
       pwmWrite(mosfetpin, 0);
     pulseran = 0;
     millis_held = 0;
+    secs_held = 0;
   }
 
   updowncheck();
@@ -153,7 +157,7 @@ void loop () {
   display.setCursor(65, 23);
   display.print("Duty=");
   display.setCursor(95, 23);
-  display.print(switchstatedown);
+  display.print(secs_held);
   display.display();
 
 
