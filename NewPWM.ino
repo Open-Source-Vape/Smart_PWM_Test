@@ -29,7 +29,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define battpin A2
 #define mosfetpin 3
 
-int32_t frequency = 10000;
+int32_t frequency = 20000;
 int switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -118,14 +118,12 @@ void loop () {
     secondslock = millis_wait / 100;
 
     if (secs_held >= 3) {
-      if (lock == 0) {
         //do fire stuff hehe
         pulsecheck();
-        if (pulsestate == 1 && lock == 0)
+        if (pulsestate == 1)
         {
           pwmWrite(mosfetpin, output);
         }
-      }
     }
 
   }
@@ -177,11 +175,11 @@ void loop () {
     display.setCursor(0, 12);
     display.print("Amp= ");
     display.setCursor(23, 12);
-    display.print(IProj, 1);
+    display.print(IRaw, 1);
     display.setCursor(0, 23);
     display.print("Volt=");
     display.setCursor(32, 23);
-    display.print(vRMS);
+    display.print(VFinal);
     display.setCursor(65, 0);
     display.setTextSize(2);
     display.print("W=");
@@ -191,7 +189,7 @@ void loop () {
     display.setCursor(65, 15);
     display.print("R=");
     display.setCursor(77, 15);
-    display.print(counter);
+    display.print(RFinal);
     display.setCursor(65, 23);
     display.print("Duty=");
     display.setCursor(95, 23);
@@ -214,18 +212,18 @@ void pulsecheck() {
     delay(20);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal - .26; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
+    RFinal = VFinal / IFinal - .16; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
 
-    if (RFinal > 0.25) {
+    if (RFinal >= 0.25) {
       pulsestate = 1;
       pulseran = 1;
     }
-    if (RFinal >= 0.1 | RFinal <= .23 | VFinal > 10) {
+    /*if (RFinal >= 0.1 | RFinal <= .23 | VFinal > 10) {
       //low resistance message
       pulsestate = 0;
       pulseran = 0 ;
-      RFinal = 0;
-    }
+      //RFinal = 0;
+    }*/
     else if (RFinal <= 0) {
       pulsestate = 0;
       pulseran = 0;
