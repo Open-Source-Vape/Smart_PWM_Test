@@ -27,7 +27,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 #define uppin 12
 #define downpin 11
-#define firepin 7
+#define firepin 2
 #define battpin A2
 #define mosfetpin 3
 
@@ -90,9 +90,15 @@ void setup () {
   pinMode(downpin, INPUT);
   pinMode(firepin, INPUT);
   pinMode(battpin, INPUT);
+  attachInterrupt(0, interrupt, HIGH);
 }
 
 void loop () {
+  mainloop();
+
+}
+
+void mainloop () {
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS / VFinal * vRMS / VFinal ) * 255;
   output = constrain(output, 0, 255);
@@ -120,25 +126,27 @@ void loop () {
     secondslock = millis_wait / 100;
 
     if (secs_held >= 3) {
-        //do fire stuff hehe
-        pulsecheck();
-        if (pulsestate == 1)
-        {
-          pwmWrite(mosfetpin, output);
-        }
+      //do fire stuff hehe
+      pulsecheck();
+      if (pulsestate == 1  && lock == 0)
+      {
+        pwmWrite(mosfetpin, output);
+      }
     }
 
   }
-  if (secs_held <= 3 && switchstate != last_state) {
+  delay(10);
+  if (secs_held <= 5 && switchstate != last_state) {
 
 
     if (secondslock <= 5) {
       counter++;
-      if (counter >= 3 && lock == 0) {
+      if (counter >= 4 && lock == 0) {
         counter = 0;
         lock = 1;
       }
-      if (counter >= 3 && lock == 1) {
+
+      if (counter >= 4 && lock == 1) {
         lock = 0;
         counter = 0;
       }
@@ -201,27 +209,24 @@ void loop () {
   if (lock == 1) {
     display.clearDisplay();
     display.display();
+    sleepnow();
   }
-
 }
-
 void pulsecheck() {
-  if (pulseran == 0) {
+  if (pulseran == 0 && lock == 0) {
     digitalWrite(mosfetpin, HIGH);
-    delay(10);
+    delay(20);
     VRaw = analogRead(A0);
     IRaw = analogRead(A1);
-    delay(20);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal - .19; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
-
-    if (RFinal >= 0.25) {
+    RFinal = VFinal / IFinal; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
+    if (RFinal >= 0.23) {
       pulsestate = 1;
       pulseran = 1;
     }
-    //need to fix the logic behind a low resistance coil / short / no coil 
-    if (RFinal >= 0.1 & RFinal <= .23 & VFinal > 10) {
+    //need to fix the logic behind a low resistance coil / short / no coil
+    if (RFinal >= 0.1 && RFinal <= .23) {
       //low resistance message
       pulsestate = 0;
       pulseran = 0 ;
@@ -236,10 +241,10 @@ void pulsecheck() {
       pulseran = 0;
       RFinal = 0;
     }
-
+    delay(20);
     digitalWrite(mosfetpin, LOW);
   }
-  if (pulsestate == 0) {
+  if (pulsestate == 0  && lock == 0) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -655,13 +660,31 @@ void constrain_4s() {
   }
 }
 
-void lockmath() {
-  if (lock == 0) {
-    lock++;
-    if (lock >= 1) {
+void interrupt()
+{
+  
+  if (switchstate == HIGH) {
+    counter ++;
+    if (counter >= 4 && lock == 0) {
+      counter = 0;
       lock = 1;
     }
+    if (counter >= 4 && lock == 1) {
+      lock = 0;
+      counter = 0;
+    }
+  }
 
+}
+
+void sleepnow() {
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable();
+  attachInterrupt(0,interrupt, HIGH); 
+  if (lock == 0){
+  sleep_mode();
+  sleep_disable();
+  detachInterrupt(0);
   }
 }
 
