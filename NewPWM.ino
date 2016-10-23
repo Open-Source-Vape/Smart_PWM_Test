@@ -27,7 +27,11 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 #define uppin 12
 #define downpin 11
-#define firepin 2
+const uint8_t firepin = 2;
+const uint8_t BUTTON_INT = digitalPinToInterrupt(firepin);
+#if __cplusplus >= 201103L // Requires Arduino 1.6.6
+static_assert(BUTTON_INT != (uint8_t)NOT_AN_INTERRUPT, "Interrupt not supported on selected pin");
+#endif
 #define battpin A2
 #define mosfetpin 3
 
@@ -73,7 +77,7 @@ byte previousup = LOW;
 byte previousdown = LOW;
 unsigned long firsttime;
 unsigned long locktime;
-int counter = 0;
+volatile int counter = 0;
 int last_state = 0;
 
 void setup () {
@@ -87,10 +91,10 @@ void setup () {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   pinMode(uppin, INPUT_PULLUP);
-  pinMode(downpin, INPUT);
-  pinMode(firepin, INPUT);
+  pinMode(downpin, INPUT_PULLUP);
+  pinMode(firepin, INPUT_PULLUP);
   pinMode(battpin, INPUT);
-  attachInterrupt(0, interrupt, HIGH);
+  attachInterrupt(BUTTON_INT, interrupt, HIGH);
 }
 
 void loop () {
@@ -106,67 +110,7 @@ void mainloop () {
   readbattery();
   drawbattery();
 
-  switchstate = digitalRead(firepin);
-  switchstateup = digitalRead(uppin);
-  switchstatedown = digitalRead(downpin);
-
-  if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
-    firsttime = millis();
-
-  }
-  if (switchstate != last_state && (secondslock > 15) ) {
-    locktime = millis();
-    counter = 0;
-  }
-  if (switchstate == HIGH) {
-
-    millis_held = (millis() - firsttime);
-    secs_held = millis_held / 100;
-    millis_wait = (millis() - locktime);
-    secondslock = millis_wait / 100;
-
-    if (secs_held >= 3) {
-      //do fire stuff hehe
-      pulsecheck();
-      if (pulsestate == 1  && lock == 0)
-      {
-        pwmWrite(mosfetpin, output);
-      }
-    }
-
-  }
-  delay(10);
-  if (secs_held <= 5 && switchstate != last_state) {
-
-
-    if (secondslock <= 5) {
-      counter++;
-      if (counter >= 4 && lock == 0) {
-        counter = 0;
-        lock = 1;
-      }
-
-      if (counter >= 4 && lock == 1) {
-        lock = 0;
-        counter = 0;
-      }
-    }
-  }
-
-  delay(10);
-
-  previous = switchstate;
-  last_state = switchstate;
-
-
-  if (switchstate == LOW) {
-    //do not firing stuff
-    if (pulsestate)
-      pwmWrite(mosfetpin, 0);
-    pulseran = 0;
-    millis_held = 0;
-    secs_held = 0;
-  }
+  
 
   updowncheck();
   project();
@@ -267,6 +211,69 @@ void pulsecheck() {
     if (RFinal == NAN) {
       RFinal == 0;
     }
+  }
+}
+void firecheck() {
+  switchstate = digitalRead(firepin);
+  switchstateup = digitalRead(uppin);
+  switchstatedown = digitalRead(downpin);
+
+  if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
+    firsttime = millis();
+
+  }
+  if (switchstate != last_state && (secondslock > 15) ) {
+    locktime = millis();
+    counter = 0;
+  }
+  if (switchstate == HIGH) {
+
+    millis_held = (millis() - firsttime);
+    secs_held = millis_held / 100;
+    millis_wait = (millis() - locktime);
+    secondslock = millis_wait / 100;
+
+    if (secs_held >= 3) {
+      //do fire stuff hehe
+      pulsecheck();
+      if (pulsestate == 1  && lock == 0)
+      {
+        pwmWrite(mosfetpin, output);
+      }
+    }
+
+  
+  delay(10);
+  if (secs_held <= 5 && switchstate != last_state) {
+
+
+    if (secondslock <= 5) {
+      counter++;
+      if (counter >= 4 && lock == 0) {
+        counter = 0;
+        lock = 1;
+      }
+
+      if (counter >= 4 && lock == 1) {
+        lock = 0;
+        counter = 0;
+      }
+    }
+  }
+}
+  delay(10);
+
+  previous = switchstate;
+  last_state = switchstate;
+
+
+  if (switchstate == LOW) {
+    //do not firing stuff
+    if (pulsestate)
+      pwmWrite(mosfetpin, 0);
+    pulseran = 0;
+    millis_held = 0;
+    secs_held = 0;
   }
 }
 void updowncheck() {
@@ -678,13 +685,14 @@ void interrupt()
 }
 
 void sleepnow() {
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  // Use the deepest kind of sleep, power-down
+  set_sleep_mode (SLEEP_MODE_PWR_DOWN);
+
   sleep_enable();
-  attachInterrupt(0,interrupt, HIGH); 
-  if (lock == 0){
-  sleep_mode();
+  // Enable interrupts and sleep. AVR guarantees that no interrupts
+  // trigger between these two, so no race condition
+  interrupts();
+  sleep_cpu ();
   sleep_disable();
-  detachInterrupt(0);
-  }
 }
 
