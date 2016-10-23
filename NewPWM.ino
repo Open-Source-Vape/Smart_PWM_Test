@@ -78,6 +78,9 @@ byte previousdown = LOW;
 unsigned long firsttime;
 unsigned long locktime;
 volatile int counter = 0;
+volatile int screenoff = 0;
+volatile long millis_interrupt;
+volatile long millis_help_interrupt;
 int last_state = 0;
 
 void setup () {
@@ -91,29 +94,30 @@ void setup () {
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   pinMode(uppin, INPUT_PULLUP);
-  pinMode(downpin, INPUT_PULLUP);
-  pinMode(firepin, INPUT_PULLUP);
+  pinMode(downpin, INPUT);
+  pinMode(firepin, INPUT);
   pinMode(battpin, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, HIGH);
 }
 
 void loop () {
-  mainloop();
-
-}
-
-void mainloop () {
+  switchstateup = digitalRead(uppin);
+  switchstatedown = digitalRead(downpin);
+  switchstate = digitalRead(firepin);
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS / VFinal * vRMS / VFinal ) * 255;
   output = constrain(output, 0, 255);
-  //readbattery raw with voltage divider to get unloaded status
+
   readbattery();
   drawbattery();
-
-  
-
+  firecheck();
   updowncheck();
-  project();
+  drawscreen();
+
+
+}
+
+void drawscreen() {
 
   if (lock == 0) {
     display.clearDisplay();
@@ -150,9 +154,21 @@ void mainloop () {
     display.print(output);
     display.display();
   }
-  if (lock == 1) {
+  if (lock == 1 /*&& screenoff == 0*/) {
+  
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.print("Locked");
+    display.setCursor(0, 15);
+    display.print(counter);
+    display.display();
+    delay(2000);
     display.clearDisplay();
     display.display();
+    screenoff = 1;
+    counter = 0;
     sleepnow();
   }
 }
@@ -164,7 +180,7 @@ void pulsecheck() {
     IRaw = analogRead(A1);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
+    RFinal = VFinal / IFinal - 0.05; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
     if (RFinal >= 0.23) {
       pulsestate = 1;
       pulseran = 1;
@@ -174,21 +190,27 @@ void pulsecheck() {
       //low resistance message
       pulsestate = 0;
       pulseran = 0 ;
-      //RFinal = 0;
+      RFinal = 0;
+
     }
     else if (RFinal <= 0) {
       pulsestate = 0;
       pulseran = 0;
+
     }
     else if (RFinal == NAN) {
       pulsestate = 0;
       pulseran = 0;
       RFinal = 0;
+
     }
     delay(20);
     digitalWrite(mosfetpin, LOW);
   }
-  if (pulsestate == 0  && lock == 0) {
+  project();
+}
+void nocoilscreen() {
+  if (pulsestate == 0 && lock == 0) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -212,12 +234,10 @@ void pulsecheck() {
       RFinal == 0;
     }
   }
-}
-void firecheck() {
-  switchstate = digitalRead(firepin);
-  switchstateup = digitalRead(uppin);
-  switchstatedown = digitalRead(downpin);
 
+}
+
+void firecheck() {
   if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
     firsttime = millis();
 
@@ -240,27 +260,25 @@ void firecheck() {
       {
         pwmWrite(mosfetpin, output);
       }
-    }
-
-  
-  delay(10);
-  if (secs_held <= 5 && switchstate != last_state) {
-
-
-    if (secondslock <= 5) {
-      counter++;
-      if (counter >= 4 && lock == 0) {
-        counter = 0;
-        lock = 1;
+      if (pulsestate == 0 && lock == 0) {
+        nocoilscreen();
       }
+    }
+    if (secs_held <= 5 && switchstate != last_state) {
+      if (secondslock <= 5) {
+        counter++;
+        if (counter >= 3 && lock == 0) {
+          counter = 0;
+          lock = 1;
+        }
 
-      if (counter >= 4 && lock == 1) {
-        lock = 0;
-        counter = 0;
+        if (counter >= 3 && lock == 1) {
+          lock = 0;
+          counter = 0;
+        }
       }
     }
   }
-}
   delay(10);
 
   previous = switchstate;
@@ -276,7 +294,9 @@ void firecheck() {
     secs_held = 0;
   }
 }
+
 void updowncheck() {
+
   if (powerlock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
@@ -667,32 +687,19 @@ void constrain_4s() {
   }
 }
 
-void interrupt()
-{
-  
-  if (switchstate == HIGH) {
-    counter ++;
-    if (counter >= 4 && lock == 0) {
-      counter = 0;
-      lock = 1;
-    }
-    if (counter >= 4 && lock == 1) {
-      lock = 0;
-      counter = 0;
-    }
-  }
-
+void interrupt() {
+firecheck();
 }
-
 void sleepnow() {
-  // Use the deepest kind of sleep, power-down
-  set_sleep_mode (SLEEP_MODE_PWR_DOWN);
-
+  set_sleep_mode (SLEEP_MODE_PWR_SAVE);
   sleep_enable();
-  // Enable interrupts and sleep. AVR guarantees that no interrupts
-  // trigger between these two, so no race condition
   interrupts();
   sleep_cpu ();
-  sleep_disable();
+  if (counter == 0 && lock == 0)
+  {
+    sleep_disable();
+    lock = 0;
+    counter = 0;
+  }
 }
 
