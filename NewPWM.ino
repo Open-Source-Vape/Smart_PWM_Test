@@ -42,6 +42,8 @@ bool switchstateup;
 bool switchstatedown;
 bool powerlock = 0;
 int lock;
+int last_watt;
+int curr_watt;
 
 int pulsestate;
 int pulseran;
@@ -52,7 +54,8 @@ int output = 0;
 float VFinal;
 float IFinal;
 float RFinal;
-volatile float WUser = 0;
+float WUser = 0;
+float WUser_Temp = 0;
 float IProj;
 int VRaw;
 int IRaw;
@@ -97,12 +100,6 @@ void setup () {
   pinMode(battpin, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, CHANGE);
   EEPROM.get(wattaddress, WUser);
-  if (WUser > 250){
-    WUser = 250;
-  }
-  if (WUser < 1){
-    WUser = 1;
-  }
 }
 
 void loop () {
@@ -112,7 +109,7 @@ void loop () {
   //readbattery raw with voltage divider to get unloaded status
   readbattery();
   drawbattery();
-
+  
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
@@ -126,7 +123,7 @@ void loop () {
     counter = 0;
   }
   if (switchstate == HIGH) {
-
+    
     millis_held = (millis() - firsttime);
     secs_held = millis_held / 100;
     millis_wait = (millis() - locktime);
@@ -137,8 +134,12 @@ void loop () {
       pulsecheck();
       if (pulsestate == 1  && lock == 0)
       {
+        curr_watt = WUser;
         pwmWrite(mosfetpin, output);
+        
+    
       }
+      
     }
   }
   delay(5);
@@ -166,6 +167,10 @@ void loop () {
 
 
   if (switchstate == LOW) {
+    last_watt = WUser;
+    if (curr_watt != last_watt) {
+          EEPROM.put(wattaddress, WUser);
+        }
     //do not firing stuff
     if (pulsestate)
       pwmWrite(mosfetpin, 0);
@@ -177,7 +182,7 @@ void loop () {
   updowncheck();
   project();
   drawscreen();
-
+  
 }
 void drawscreen() {
   if (lock == 0) {
@@ -222,14 +227,15 @@ void drawscreen() {
   }
 }
 void pulsecheck() {
+  
   if (pulseran == 0 && lock == 0) {
     digitalWrite(mosfetpin, HIGH);
-    delay(20);
+    delay(25);
     VRaw = analogRead(A0);
     IRaw = analogRead(A1);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
+    RFinal = VFinal / IFinal- 0.03; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
     if (RFinal >= 0.23) {
       pulsestate = 1;
       pulseran = 1;
@@ -250,7 +256,7 @@ void pulsecheck() {
       pulseran = 0;
       RFinal = 0;
     }
-    delay(20);
+    delay(25);
     digitalWrite(mosfetpin, LOW);
   }
   if (pulsestate == 0  && lock == 0) {
@@ -347,6 +353,7 @@ void updowncheck() {
         powerlock = 1;
       }
   }
+
 }
 
 void project() {
@@ -673,11 +680,10 @@ void interrupt()
 {
   sleep_disable();
   detachInterrupt(0);
-  EEPROM.get(wattaddress, WUser);
+  
 }
 
 void sleepnow() {
-  EEPROM.put(wattaddress, WUser);
   set_sleep_mode (SLEEP_MODE_IDLE);
   sleep_enable();
   attachInterrupt(BUTTON_INT, interrupt, HIGH);
