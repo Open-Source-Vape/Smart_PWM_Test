@@ -19,6 +19,7 @@
 #include <gfxfont.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include <EEPROM.h>
 
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
@@ -27,9 +28,13 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 #define uppin 12
 #define downpin 11
-#define firepin 2
+const uint8_t firepin = 2;
+const uint8_t BUTTON_INT = digitalPinToInterrupt(firepin);
 #define battpin A2
 #define mosfetpin 3
+
+int wattaddress = 0;
+
 
 int32_t frequency = 500;
 int switchstate;
@@ -90,15 +95,17 @@ void setup () {
   pinMode(downpin, INPUT);
   pinMode(firepin, INPUT);
   pinMode(battpin, INPUT);
-  attachInterrupt(0, interrupt, HIGH);
+  attachInterrupt(BUTTON_INT, interrupt, CHANGE);
+  EEPROM.get(wattaddress, WUser);
+  if (WUser > 250){
+    WUser = 250;
+  }
+  if (WUser < 1){
+    WUser = 1;
+  }
 }
 
 void loop () {
-  mainloop();
-
-}
-
-void mainloop () {
   vRMS = sqrt(WUser * RFinal);
   output = (vRMS / VFinal * vRMS / VFinal ) * 255;
   output = constrain(output, 0, 255);
@@ -133,9 +140,8 @@ void mainloop () {
         pwmWrite(mosfetpin, output);
       }
     }
-
   }
-  delay(10);
+  delay(5);
   if (secs_held <= 5 && switchstate != last_state) {
 
 
@@ -170,7 +176,10 @@ void mainloop () {
 
   updowncheck();
   project();
+  drawscreen();
 
+}
+void drawscreen() {
   if (lock == 0) {
     display.clearDisplay();
     display.setTextSize(1);
@@ -662,29 +671,17 @@ void constrain_4s() {
 
 void interrupt()
 {
-  
-  if (switchstate == HIGH) {
-    counter ++;
-    if (counter >= 4 && lock == 0) {
-      counter = 0;
-      lock = 1;
-    }
-    if (counter >= 4 && lock == 1) {
-      lock = 0;
-      counter = 0;
-    }
-  }
-
+  sleep_disable();
+  detachInterrupt(0);
+  EEPROM.get(wattaddress, WUser);
 }
 
 void sleepnow() {
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  EEPROM.put(wattaddress, WUser);
+  set_sleep_mode (SLEEP_MODE_IDLE);
   sleep_enable();
-  attachInterrupt(0,interrupt, HIGH); 
-  if (lock == 0){
+  attachInterrupt(BUTTON_INT, interrupt, HIGH);
   sleep_mode();
-  sleep_disable();
-  detachInterrupt(0);
-  }
+
 }
 
