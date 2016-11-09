@@ -1,4 +1,4 @@
-/*
+  /*
    Components used:
    https://www.adafruit.com/products/931
    https://www.sparkfun.com/products/9028
@@ -10,10 +10,8 @@
    place 220 ohm resistor between MCU pin 7 and gate on mosfet
 */
 
-#include <Button.h>
 #include <PWM.h>
 #include <Wire.h>
-#include <SPI.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <gfxfont.h>
@@ -36,7 +34,7 @@ const uint8_t BUTTON_INT = digitalPinToInterrupt(firepin);
 int wattaddress = 0;
 
 
-int32_t frequency = 500;
+int32_t frequency = 2000;
 int switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -98,8 +96,12 @@ void setup () {
   pinMode(downpin, INPUT);
   pinMode(firepin, INPUT);
   pinMode(battpin, INPUT);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, CHANGE);
   EEPROM.get(wattaddress, WUser);
+  
 }
 
 void loop () {
@@ -113,8 +115,14 @@ void loop () {
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
-
-  if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
+  firecheck();
+  updowncheck();
+  project();
+  drawscreen();
+  
+}
+void firecheck() {
+    if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
     firsttime = millis();
 
   }
@@ -178,11 +186,6 @@ void loop () {
     millis_held = 0;
     secs_held = 0;
   }
-
-  updowncheck();
-  project();
-  drawscreen();
-  
 }
 void drawscreen() {
   if (lock == 0) {
@@ -218,6 +221,7 @@ void drawscreen() {
     display.print("Duty=");
     display.setCursor(95, 23);
     display.print(output);
+    //setContrast(display, 255);
     display.display();
   }
   if (lock == 1) {
@@ -230,7 +234,7 @@ void pulsecheck() {
   
   if (pulseran == 0 && lock == 0) {
     digitalWrite(mosfetpin, HIGH);
-    delay(25);
+    delay(35);
     VRaw = analogRead(A0);
     IRaw = analogRead(A1);
     VFinal = VRaw / 12.99;
@@ -256,7 +260,7 @@ void pulsecheck() {
       pulseran = 0;
       RFinal = 0;
     }
-    delay(25);
+    delay(15);
     digitalWrite(mosfetpin, LOW);
   }
   if (pulsestate == 0  && lock == 0) {
