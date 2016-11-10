@@ -1,13 +1,13 @@
-  /*
-   Components used:
-   https://www.adafruit.com/products/931
-   https://www.sparkfun.com/products/9028
-   https://www.sparkfun.com/products/8374
-   https://www.sparkfun.com/products/13760
-   https://www.sparkfun.com/products/97
-   http://www.infineon.com/cms/en/product/power/power-mosfet/20v-300v-n-channel-power-mosfet/20v-30v-n-channel-power-mosfet/IRLS3813/productType.html?productType=5546d462533600a401533d4c1e1f77fa
-   https://www.radioshack.com/products/radioshack-220-ohm-1-4w-5-carbon-film-resistor-pk-5
-   place 220 ohm resistor between MCU pin 7 and gate on mosfet
+/*
+  Components used:
+  https://www.adafruit.com/products/931
+  https://www.sparkfun.com/products/9028
+  https://www.sparkfun.com/products/8374
+  https://www.sparkfun.com/products/13760
+  https://www.sparkfun.com/products/97
+  http://www.infineon.com/cms/en/product/power/power-mosfet/20v-300v-n-channel-power-mosfet/20v-30v-n-channel-power-mosfet/IRLS3813/productType.html?productType=5546d462533600a401533d4c1e1f77fa
+  https://www.radioshack.com/products/radioshack-220-ohm-1-4w-5-carbon-film-resistor-pk-5
+  place 220 ohm resistor between MCU pin 7 and gate on mosfet
 */
 
 #include <PWM.h>
@@ -101,7 +101,7 @@ void setup () {
   pinMode(A2, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, CHANGE);
   EEPROM.get(wattaddress, WUser);
-  
+
 }
 
 void loop () {
@@ -111,7 +111,7 @@ void loop () {
   //readbattery raw with voltage divider to get unloaded status
   readbattery();
   drawbattery();
-  
+
   switchstate = digitalRead(firepin);
   switchstateup = digitalRead(uppin);
   switchstatedown = digitalRead(downpin);
@@ -119,10 +119,10 @@ void loop () {
   updowncheck();
   project();
   drawscreen();
-  
+
 }
 void firecheck() {
-    if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
+  if (switchstate == HIGH && previous == LOW && (millis() - firsttime) > 200) {
     firsttime = millis();
 
   }
@@ -131,7 +131,7 @@ void firecheck() {
     counter = 0;
   }
   if (switchstate == HIGH) {
-    
+
     millis_held = (millis() - firsttime);
     secs_held = millis_held / 100;
     millis_wait = (millis() - locktime);
@@ -144,10 +144,10 @@ void firecheck() {
       {
         curr_watt = WUser;
         pwmWrite(mosfetpin, output);
-        
-    
+
+
       }
-      
+
     }
   }
   delay(5);
@@ -177,8 +177,8 @@ void firecheck() {
   if (switchstate == LOW) {
     last_watt = WUser;
     if (curr_watt != last_watt) {
-          EEPROM.put(wattaddress, WUser);
-        }
+      EEPROM.put(wattaddress, WUser);
+    }
     //do not firing stuff
     if (pulsestate)
       pwmWrite(mosfetpin, 0);
@@ -231,7 +231,7 @@ void drawscreen() {
   }
 }
 void pulsecheck() {
-  
+
   if (pulseran == 0 && lock == 0) {
     digitalWrite(mosfetpin, HIGH);
     delay(35);
@@ -239,7 +239,7 @@ void pulsecheck() {
     IRaw = analogRead(A1);
     VFinal = VRaw / 12.99;
     IFinal = IRaw / 7.4;
-    RFinal = VFinal / IFinal- 0.03; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
+    RFinal = VFinal / IFinal - 0.03; //the .26 may not be needed i think it is the resistance of the board itself though or the overall circuit
     if (RFinal >= 0.23) {
       pulsestate = 1;
       pulseran = 1;
@@ -660,22 +660,44 @@ void readbattery() {
 }
 
 void constrain_2s() {
-  if (WUser >= 250) WUser = 250;
+  if (WUser > 250)
   { //display max wattage eror
-
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("MAX WATTAGE");
+    display.display();
+    delay(100);
+    WUser = 250;
   }
 }
 
 void constrain_3s() {
-  if (WUser >= 375) WUser = 375;
+  if (WUser >= 375)
   { //display max wattage eror
-
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("MAX WATTAGE");
+    display.display();
+    delay(100);
+     WUser = 375;
   }
 }
 
 void constrain_4s() {
-  if (WUser >= 500) WUser = 500;
+  if (WUser >= 500)
   { //display max wattage eror
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("MAX WATTAGE");
+    display.display();
+    delay(100);
+     WUser = 500;
 
   }
 }
@@ -684,7 +706,7 @@ void interrupt()
 {
   sleep_disable();
   detachInterrupt(0);
-  
+
 }
 
 void sleepnow() {
