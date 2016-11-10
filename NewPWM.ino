@@ -42,6 +42,10 @@ bool powerlock = 0;
 int lock;
 int last_watt;
 int curr_watt;
+int menu_freq;
+int menu_res_offset;
+int menu_curr;
+
 
 int pulsestate;
 int pulseran;
