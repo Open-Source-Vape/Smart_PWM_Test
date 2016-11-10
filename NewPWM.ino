@@ -45,6 +45,7 @@ int curr_watt;
 int menu_freq;
 int menu_res_offset;
 int menu_curr;
+int sleeping;
 
 
 int pulsestate;
@@ -228,10 +229,26 @@ void drawscreen() {
     //setContrast(display, 255);
     display.display();
   }
-  if (lock == 1) {
+  if (lock == 1 && sleeping == 0) {
+    
+    display.clearDisplay();
+    display.display();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 0);
+    display.println("LOCKED");
+    display.display();
+    noInterrupts();
+    delay(1000);
+    interrupts();
+    sleepnow();
+    sleeping =1;
+  }
+  if (lock == 1 && sleeping == 1) {
     display.clearDisplay();
     display.display();
     sleepnow();
+    sleeping = 1;
   }
 }
 void pulsecheck() {
@@ -361,13 +378,16 @@ void updowncheck() {
         powerlock = 1;
       }
   }
-//------------------>
+  //------------------>
 
-if (switchstatedown == HIGH && switchstateup == HIGH)
-{
-  //add menu to change frequency and other shit here
-  
-}
+  if (switchstatedown == HIGH && switchstateup == HIGH)
+  {
+    //add menu to change frequency and other shit here
+    /*
+
+    */
+
+  }
 }
 
 void project() {
@@ -693,7 +713,7 @@ void constrain_3s() {
     display.println("MAX WATTAGE");
     display.display();
     delay(100);
-     WUser = 375;
+    WUser = 375;
   }
 }
 
@@ -707,7 +727,7 @@ void constrain_4s() {
     display.println("MAX WATTAGE");
     display.display();
     delay(100);
-     WUser = 500;
+    WUser = 500;
 
   }
 }
@@ -716,6 +736,7 @@ void interrupt()
 {
   sleep_disable();
   detachInterrupt(0);
+  sleeping = 0;
 
 }
 
