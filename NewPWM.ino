@@ -357,7 +357,13 @@ void updowncheck() {
         powerlock = 1;
       }
   }
+//------------------>
 
+if (switchstatedown == HIGH && switchstateup == HIGH)
+{
+  //add menu to change frequency and other shit here
+  
+}
 }
 
 void project() {
