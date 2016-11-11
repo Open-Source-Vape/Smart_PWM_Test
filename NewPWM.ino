@@ -73,6 +73,7 @@ int battery;
 enum {twoS, threeS, fourS};
 
 byte batt_type;
+byte batt_kind;
 
 long millis_held;
 long millis_wait;
@@ -230,7 +231,7 @@ void drawscreen() {
     display.display();
   }
   if (lock == 1 && sleeping == 0) {
-    
+
     display.clearDisplay();
     display.display();
     display.setTextSize(1);
@@ -242,7 +243,7 @@ void drawscreen() {
     delay(1000);
     interrupts();
     sleepnow();
-    sleeping =1;
+    sleeping = 1;
   }
   if (lock == 1 && sleeping == 1) {
     display.clearDisplay();
@@ -310,6 +311,21 @@ void pulsecheck() {
   }
 }
 void updowncheck() {
+  switch (switchstateup == HIGH && switchstatedown == HIGH) {
+      display.clearDisplay();
+      display.setTextSize(1);
+      display.setTextColor(WHITE);
+      display.setCursor(0, 0);
+      display.println(powerlock);
+      display.display();
+
+      if (powerlock == 1) {
+        powerlock = 0;
+      }
+      if (powerlock == 0) {
+        powerlock = 1;
+      }
+  }
   if (powerlock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
@@ -370,24 +386,7 @@ void updowncheck() {
       // DIsplay min wattage error
     }
   }
-  switch (switchstateup == LOW && switchstatedown == LOW) {
-      if (powerlock == 1) {
-        powerlock = 0;
-      }
-      if (powerlock == 0) {
-        powerlock = 1;
-      }
-  }
-  //------------------>
 
-  if (switchstatedown == HIGH && switchstateup == HIGH)
-  {
-    //add menu to change frequency and other shit here
-    /*
-
-    */
-
-  }
 }
 
 void project() {
@@ -395,7 +394,15 @@ void project() {
 }
 
 void drawbattery() {
+if (batt_kind=1){
   battery = map (vin, 0, 8.4, 0, 100);
+}
+if(batt_kind=2){
+  battery = map (vin, 0, 12.6, 0, 100);
+}
+if(batt_kind=3){
+  battery = map (vin, 0, 16.8, 0, 100);
+}
   switch (battery) {
     case 100:
       display.fillRect(0, 0, 30, 9, WHITE);
@@ -700,11 +707,12 @@ void constrain_2s() {
     display.display();
     delay(100);
     WUser = 250;
+    batt_kind = 1;
   }
 }
 
 void constrain_3s() {
-  if (WUser >= 375)
+  if (WUser > 375)
   { //display max wattage eror
     display.clearDisplay();
     display.setTextSize(1);
@@ -714,11 +722,12 @@ void constrain_3s() {
     display.display();
     delay(100);
     WUser = 375;
+    batt_kind = 2;
   }
 }
 
 void constrain_4s() {
-  if (WUser >= 500)
+  if (WUser > 500)
   { //display max wattage eror
     display.clearDisplay();
     display.setTextSize(1);
@@ -728,7 +737,7 @@ void constrain_4s() {
     display.display();
     delay(100);
     WUser = 500;
-
+    batt_kind = 3;
   }
 }
 
