@@ -100,6 +100,12 @@ void setup () {
   }
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("Cloud 9");
+  display.display();
+  delay(100);
   pinMode(uppin, INPUT_PULLUP);
   pinMode(downpin, INPUT);
   pinMode(firepin, INPUT);
@@ -672,7 +678,7 @@ void readbattery() {
   voltageValue = analogRead(battpin);
   vout = (voltageValue * 5.26) / 1024.0;
   vin = vout / (R2 / (R1 + R2));
-  if (setup_ran == 1) {
+  if (setup_ran == 0) {
     if (vin < 0.09) {
       vin = 0.0;
     }
