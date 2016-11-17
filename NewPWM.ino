@@ -12,17 +12,12 @@
 
 #include <PWM.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
-#include <gfxfont.h>
+#include "U8glib.h"
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <EEPROM.h>
 
-#define OLED_RESET 4
-Adafruit_SSD1306 display(OLED_RESET);
-#define LOGO16_GLCD_HEIGHT 16
-#define LOGO16_GLCD_WIDTH  16
+U8GLIB_SSD1306_128X32 u8g(U8G_I2C_OPT_NONE);
 
 #define uppin 12
 #define downpin 11
@@ -98,13 +93,9 @@ void setup () {
     pinMode(13, OUTPUT);
     digitalWrite(13, HIGH);
   }
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("Cloud 9");
-  display.display();
+  u8g.setFont(u8g_font_unifont);
+  u8g.setPrintPos(0, 0);
+  u8g.print("Cloud 9");
   delay(100);
   pinMode(uppin, INPUT_PULLUP);
   pinMode(downpin, INPUT);
@@ -256,8 +247,8 @@ void drawscreen() {
     sleeping = 1;
   }
   if (lock == 1 && sleeping == 1) {
-    display.clearDisplay();
-    display.display();
+    //display.clearDisplay();
+    //display.display();
     sleepnow();
     sleeping = 1;
   }
@@ -296,14 +287,9 @@ void pulsecheck() {
     digitalWrite(mosfetpin, LOW);
   }
   if (pulsestate == 0  && lock == 0) {
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 0);
-    display.print("No Coil");
-    display.setCursor(0, 10);
-    display.print(pulsestate);
-    display.display();
+    u8g.setFont(u8g_font_unifont);
+    u8g.setPrintPos(0, 0);
+    u8g.print("No Coil");
     delay(100);
     pulseran = 0;
     if (IProj == NAN) {
@@ -322,12 +308,10 @@ void pulsecheck() {
 }
 void updowncheck() {
   switch (switchstateup == HIGH && switchstatedown == HIGH) {
-      display.clearDisplay();
-      display.setTextSize(1);
-      display.setTextColor(WHITE);
-      display.setCursor(0, 0);
-      display.println(powerlock);
-      display.display();
+      u8g.setFont(u8g_font_unifont);
+      u8g.setPrintPos(0, 0);
+      u8g.print(powerlock);
+
 
       if (powerlock == 1) {
         powerlock = 0;
@@ -400,7 +384,8 @@ void drawbattery() {
   if (batt_kind = 3) {
     battery = map (vin, 0, 16.8, 0, 100);
   }
-  switch (battery) {
+  /*
+    switch (battery) {
     case 100:
       display.fillRect(0, 0, 30, 9, WHITE);
       break;
@@ -671,7 +656,7 @@ void drawbattery() {
     case 10:
       display.fillRect(0, 0, 0, 9, WHITE);
       break;
-  }
+    }*/
 
 }
 void readbattery() {
@@ -714,12 +699,9 @@ void readbattery() {
 void constrain_2s() {
   if (WUser > 250)
   { //display max wattage eror
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 0);
-    display.println("MAX WATTAGE");
-    display.display();
+    u8g.setPrintPos(WHITE);
+    u8g.setPrintPos(0, 0);
+    u8g.print("MAX WATTAGE");
     delay(100);
     WUser = 250;
     batt_kind = 1;
@@ -729,12 +711,9 @@ void constrain_2s() {
 void constrain_3s() {
   if (WUser > 375)
   { //display max wattage eror
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 0);
-    display.println("MAX WATTAGE");
-    display.display();
+    u8g.setPrintPos(WHITE);
+    u8g.setPrintPos(0, 0);
+    u8g.print("MAX WATTAGE");
     delay(100);
     WUser = 375;
     batt_kind = 2;
@@ -744,12 +723,9 @@ void constrain_3s() {
 void constrain_4s() {
   if (WUser > 500)
   { //display max wattage eror
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 0);
-    display.println("MAX WATTAGE");
-    display.display();
+    u8g.setPrintPos(WHITE);
+    u8g.setPrintPos(0, 0);
+    u8g.print("MAX WATTAGE");
     delay(100);
     WUser = 500;
     batt_kind = 3;
