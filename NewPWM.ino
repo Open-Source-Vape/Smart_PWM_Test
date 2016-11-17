@@ -32,9 +32,9 @@ const uint8_t BUTTON_INT = digitalPinToInterrupt(firepin);
 #define mosfetpin 3
 
 int wattaddress = 0;
+int battaddress = 5;
 
-
-int32_t frequency = 2000;
+int32_t frequency = 200;
 int switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -57,7 +57,7 @@ int output = 0;
 float VFinal;
 float IFinal;
 float RFinal;
-float WUser = 0;
+float WUser = 1;
 float WUser_Temp = 0;
 float IProj;
 int VRaw;
@@ -74,6 +74,7 @@ enum {twoS, threeS, fourS};
 
 byte batt_type;
 byte batt_kind;
+byte batt_last;
 
 long millis_held;
 long millis_wait;
@@ -87,6 +88,7 @@ unsigned long firsttime;
 unsigned long locktime;
 int counter = 0;
 int last_state = 0;
+int setup_ran = 0;
 
 void setup () {
   InitTimersSafe();
@@ -107,6 +109,8 @@ void setup () {
   pinMode(A2, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, CHANGE);
   EEPROM.get(wattaddress, WUser);
+  readbattery();
+  setup_ran = 1;
 
 }
 
@@ -342,20 +346,7 @@ void updowncheck() {
         delay(100);
       }
     }
-    switch (batt_type) {
-      case twoS:
-        constrain_2s();
-        break;
-      case threeS:
-        constrain_3s();
-        break;
-      case fourS:
-        constrain_4s();
-        break;
-      default:
-        constrain_2s();
-        break;
-    }
+
 
     previousup = switchstateup;
 
@@ -394,15 +385,15 @@ void project() {
 }
 
 void drawbattery() {
-if (batt_kind=1){
-  battery = map (vin, 0, 8.4, 0, 100);
-}
-if(batt_kind=2){
-  battery = map (vin, 0, 12.6, 0, 100);
-}
-if(batt_kind=3){
-  battery = map (vin, 0, 16.8, 0, 100);
-}
+  if (batt_kind = 1) {
+    battery = map (vin, 0, 8.4, 0, 100);
+  }
+  if (batt_kind = 2) {
+    battery = map (vin, 0, 12.6, 0, 100);
+  }
+  if (batt_kind = 3) {
+    battery = map (vin, 0, 16.8, 0, 100);
+  }
   switch (battery) {
     case 100:
       display.fillRect(0, 0, 30, 9, WHITE);
@@ -681,21 +672,39 @@ void readbattery() {
   voltageValue = analogRead(battpin);
   vout = (voltageValue * 5.26) / 1024.0;
   vin = vout / (R2 / (R1 + R2));
-  if (vin < 0.09) {
-    vin = 0.0;
+  if (setup_ran == 1) {
+    if (vin < 0.09) {
+      vin = 0.0;
+    }
+    if (vin >= 6.8 & vin <= 8.8) {
+      batt_type = twoS;
+    }
+    if (vin >= 10.5 & vin <= 13.2) {
+      batt_type = threeS;
+    }
+    if (vin >= 14 & vin <= 17.6) {
+      batt_type = fourS;
+    }
+    switch (batt_type) {
+      case twoS:
+        constrain_2s();
+        break;
+      case threeS:
+        constrain_3s();
+        break;
+      case fourS:
+        constrain_4s();
+        break;
+      default:
+        constrain_2s();
+        break;
+    }
+    EEPROM.get(battaddress, batt_kind);
+    if (batt_kind != batt_last) {
+      EEPROM.put(battaddress, batt_kind);
+    }
   }
-  if (vin >= 6.8 & vin <= 8.8) {
-    batt_type = twoS;
-  }
-  if (vin >= 10.5 & vin <= 13.2) {
-    batt_type = threeS;
-  }
-  if (vin >= 14 & vin <= 17.6) {
-    batt_type = fourS;
-  }
-
 }
-
 void constrain_2s() {
   if (WUser > 250)
   { //display max wattage eror
