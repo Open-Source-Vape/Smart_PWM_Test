@@ -43,8 +43,8 @@ int lock;
 int last_watt;
 int curr_watt;
 int menu_freq;
-int menu_res_offset;
-int menu_curr;
+int menu_res_offset = 0;
+int menu_curr = 1;
 int sleeping;
 
 
@@ -204,7 +204,7 @@ void firecheck() {
   }
 }
 void drawscreen() {
-  if (lock == 0) {
+  if (menu_curr == 1 && lock == 0 && menu_res_offset == 0) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -261,12 +261,12 @@ void drawscreen() {
     sleepnow();
     sleeping = 1;
   }
-  if (menu_res_offset = 1) {
+  if (menu_curr == 2 && menu_res_offset == 1 && lock == 0 ) {
     display.clearDisplay();
     display.setTextSize(1);
-    display.setCursor(0,0);
+    display.setCursor(0, 0);
     display.print("Freq:");
-    display.setCursor(23,0);
+    display.setCursor(23, 0);
     display.print(frequency);
     display.display();
   }
@@ -331,30 +331,31 @@ void pulsecheck() {
 }
 void updowncheck() {
   switch (switchstateup == HIGH && switchstatedown == HIGH) {
-    if (menu_res_offset==0){
-     menu_res_offset = 1;
-    }
-    if(menu_res_offset==1){
-      menu_res_offset = 0;
-    }
-     
+      if (menu_res_offset == 0) {
+        menu_res_offset++;
+      }
+      else if (menu_res_offset == 1) {
+        menu_res_offset--;
+      }
+
+
+      if (menu_res_offset == 1 && lock == 0) {
+        if (switchstateup == HIGH && switchstatedown == LOW) {
+          frequency++;
+        }
+        if (switchstatedown == HIGH && switchstateup == LOW) {
+          frequency--;
+        }
+        if (frequency >= 25000) {
+          frequency = 25000;
+        }
+        if (frequency <= 100) {
+          frequency = 100;
+
+        }
+      }
   }
-  if(menu_res_offset==1 && lock == 0){
-    if (switchstateup==HIGH && switchstatedown ==LOW){
-      frequency++;
-    }
-    if (switchstatedown==HIGH && switchstateup==LOW){
-      frequency--;
-    }
-    if (frequency >= 25000) {
-      frequency = 25000;
-    }
-    if (frequency <=100){
-      frequency = 100;
-      
-    }
-  }
-  if (powerlock == 0 && menu_res_offset==0 && lock == 0) {
+  if (powerlock == 0 && menu_res_offset == 0 && lock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
     }
