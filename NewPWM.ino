@@ -33,8 +33,10 @@ const uint8_t BUTTON_INT = digitalPinToInterrupt(firepin);
 
 int wattaddress = 0;
 int battaddress = 5;
+int freq_address = 10;
 
-int32_t frequency = 200;
+volatile int32_t frequency = 200;
+volatile int32_t last_freq;
 int switchstate;
 bool switchstateup;
 bool switchstatedown;
@@ -115,6 +117,7 @@ void setup () {
   pinMode(A2, INPUT);
   attachInterrupt(BUTTON_INT, interrupt, CHANGE);
   EEPROM.get(wattaddress, WUser);
+  EEPROM.get(freq_address, frequency);
   readbattery();
   setup_ran = 1;
 
@@ -268,6 +271,8 @@ void drawscreen() {
     display.print("Freq:");
     display.setCursor(35, 0);
     display.print(frequency);
+    display.setCursor(0,15);
+    display.print(last_freq);
     display.display();
   }
 }
@@ -342,12 +347,15 @@ void updowncheck() {
   }
 
   if (menu_res_offset == 1 && lock == 0) {
+    last_freq = frequency;
     if (switchstateup == HIGH && switchstatedown == LOW) {
       frequency = frequency + 25;
     }
+    delay(50);
     if (switchstatedown == HIGH && switchstateup == LOW) {
       frequency = frequency -25;
     }
+    delay(50);
     if (frequency > 25000) {
       frequency = 25000;
     }
@@ -355,7 +363,11 @@ void updowncheck() {
       frequency = 100;
 
     }
+  if (last_freq != frequency) {
+    EEPROM.put(freq_address, frequency);
   }
+  }
+  
   if (powerlock == 0 && menu_res_offset == 0 && lock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
