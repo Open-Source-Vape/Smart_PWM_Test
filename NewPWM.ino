@@ -339,10 +339,16 @@ void updowncheck() {
     }
      
   }
-  if(menu_res_offset==1){
+  if(menu_res_offset==1 && lock == 0){
+    if (switchstateup==HIGH && switchstatedown ==LOW){
+      frequency++;
+    }
+    if (switchstatedown==HIGH && switchstateup==LOW){
+      frequency--;
+    }
     
   }
-  if (powerlock == 0 && menu_res_offset==0) {
+  if (powerlock == 0 && menu_res_offset==0 && lock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
     }
