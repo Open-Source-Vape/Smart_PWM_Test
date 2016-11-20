@@ -261,6 +261,15 @@ void drawscreen() {
     sleepnow();
     sleeping = 1;
   }
+  if (menu_res_offset = 1) {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(0,0);
+    display.print("Freq:");
+    display.setCursor(23,0);
+    display.print(frequency);
+    display.display();
+  }
 }
 void pulsecheck() {
 
@@ -322,21 +331,18 @@ void pulsecheck() {
 }
 void updowncheck() {
   switch (switchstateup == HIGH && switchstatedown == HIGH) {
-      display.clearDisplay();
-      display.setTextSize(1);
-      display.setTextColor(WHITE);
-      display.setCursor(0, 0);
-      display.println(powerlock);
-      display.display();
-
-      if (powerlock == 1) {
-        powerlock = 0;
-      }
-      if (powerlock == 0) {
-        powerlock = 1;
-      }
+    if (menu_res_offset==0){
+     menu_res_offset = 1;
+    }
+    if(menu_res_offset==1){
+      menu_res_offset = 0;
+    }
+     
   }
-  if (powerlock == 0) {
+  if(menu_res_offset==1){
+    
+  }
+  if (powerlock == 0 && menu_res_offset==0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
       firsttime = millis();
     }
