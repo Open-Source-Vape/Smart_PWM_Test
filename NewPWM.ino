@@ -346,7 +346,13 @@ void updowncheck() {
     if (switchstatedown==HIGH && switchstateup==LOW){
       frequency--;
     }
-    
+    if (frequency >= 25000) {
+      frequency = 25000;
+    }
+    if (frequency <=100){
+      frequency = 100;
+      
+    }
   }
   if (powerlock == 0 && menu_res_offset==0 && lock == 0) {
     if (switchstateup == HIGH && previousup == LOW && (millis() - firsttime) > 200) {
