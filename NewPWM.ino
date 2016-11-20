@@ -244,7 +244,7 @@ void drawscreen() {
     display.display();
   }
   if (lock == 1 && sleeping == 0) {
-
+    
     display.clearDisplay();
     display.display();
     display.setTextSize(1);
@@ -270,9 +270,8 @@ void drawscreen() {
     display.setCursor(0, 0);
     display.print("Freq:");
     display.setCursor(35, 0);
+    display.setTextSize(2);
     display.print(frequency);
-    display.setCursor(0,15);
-    display.print(last_freq);
     display.display();
   }
 }
