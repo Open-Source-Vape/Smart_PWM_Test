@@ -343,15 +343,15 @@ void updowncheck() {
 
   if (menu_res_offset == 1 && lock == 0) {
     if (switchstateup == HIGH && switchstatedown == LOW) {
-      frequency++;
+      frequency = frequency + 25;
     }
     if (switchstatedown == HIGH && switchstateup == LOW) {
-      frequency--;
+      frequency = frequency -25;
     }
-    if (frequency >= 25000) {
+    if (frequency > 25000) {
       frequency = 25000;
     }
-    if (frequency <= 100) {
+    if (frequency < 100) {
       frequency = 100;
 
     }
