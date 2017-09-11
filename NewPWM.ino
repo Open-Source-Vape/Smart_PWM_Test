@@ -99,13 +99,7 @@ int last_state = 0;
 int setup_ran = 0;
 
 void setup () {
-  InitTimersSafe();
-  bool success = SetPinFrequencySafe(mosfetpin, frequency);
-  pinMode(mosfetpin, OUTPUT);
-  if (success) {
-    pinMode(13, OUTPUT);
-    digitalWrite(13, HIGH);
-  }
+  analogWriteResolution (8);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.setTextSize(2);
@@ -168,7 +162,7 @@ void firecheck() {
       if (pulsestate == 1  && lock == 0)
       {
         curr_watt = WUser;
-        pwmWrite(mosfetpin, output);
+        analogWrite(mosfetpin, output);
 
 
       }
@@ -206,7 +200,7 @@ void firecheck() {
     }
     //do not firing stuff
     if (pulsestate)
-      pwmWrite(mosfetpin, 0);
+      analogWrite(mosfetpin, 0);
     pulseran = 0;
     millis_held = 0;
     secs_held = 0;
